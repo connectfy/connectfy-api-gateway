@@ -3,12 +3,12 @@ version: '3.8'
 services:
   api-gateway:
     container_name: api-gateway-dev
-    image: connectfy/api-gateway-dev
     build:
       context: .
       dockerfile: Dockerfile.dev
     volumes:
       - .:/usr/src/app
+      - /usr/src/app/node_modules
     ports:
       - "3000:3000"
     extra_hosts:
@@ -17,12 +17,12 @@ services:
       - api-gateway-network
       - kafka_network
       - auth-network
-      # - main-network
-      # - permissions-network
-      # - fileuploader-network
     environment:
       - NODE_ENV=development
-    command: npm run start:dev
+      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_INTERVAL=1000
+      - WATCHPACK_POLLING=true
+    command: npx nodemon --legacy-watch --watch src --ext ts,js,json --exec "npm run start:dev"
     restart: unless-stopped
     env_file:
       - .env.development
@@ -34,9 +34,3 @@ networks:
     external: true
   auth-network:
     external: true
-  # main-network:
-  #   external: true
-  # permissions-network:
-  #   external: true
-  # fileuploader-network:
-  #   external: true
