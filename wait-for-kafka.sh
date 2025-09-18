@@ -3,7 +3,7 @@
 set -e
 
 # Параметры Kafka
-KAFKA_BROKER_LIST="kafka-0:9092,kafka-1:9092"
+KAFKA_BROKER_LIST="connectfy-kafka-0:9092,connectfy-kafka-1:9092"
 
 # Функция проверки доступности Kafka
 check_kafka() {

@@ -2,17 +2,17 @@ version: '3.8'
 
 services:
   api-gateway:
-    container_name: api-gateway-prod
-    image: connectfy/api-gateway-prod
+    container_name: connectfy-api-gateway-prod
+    image: connectfy/connectfy-api-gateway-prod
     build:
       context: .
       dockerfile: Dockerfile.prod
     ports:
       - "3000:3000"
     networks:
-      - api-gateway-network
-      - kafka_network
-      - auth-network
+      - connectfy-api-gateway-network
+      - connectfy_kafka_network
+      - connectfy-auth-network
       # - main-network
       # - permissions-network
       # - fileuploader-network
@@ -24,11 +24,11 @@ services:
     
 
 networks:
-  api-gateway-network:
+  connectfy-api-gateway-network:
     external: true
-  kafka_network:
+  connectfy_kafka_network:
     external: true
-  auth-network:
+  connectfy-auth-network:
     external: true
   # main-network:
   #   external: true
