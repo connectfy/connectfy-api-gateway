@@ -66,4 +66,22 @@ export class AuthController {
 
     return response.status(201).json(res);
   }
+
+  @Post('google/login')
+  async googleAuthLogin(@Body() data, @Res() response: Response) {
+    const res = await lastValueFrom(this.service.send('auth/google/login', data));
+
+    if (res.refresh_token) await this.setRefreshCookie(res.refresh_token, response);
+
+    return response.status(201).json(res);
+  }
+
+  @Post('google/signup')
+  async googleAuthSignup(@Body() data, @Res() response: Response) {
+    const res = await lastValueFrom(this.service.send('auth/google/signup', data));
+
+    if (res.refresh_token) await this.setRefreshCookie(res.refresh_token, response);
+
+    return response.status(201).json(res);
+  }
 }
