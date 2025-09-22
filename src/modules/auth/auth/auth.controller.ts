@@ -11,6 +11,19 @@ export class AuthController {
     private readonly config: ConfigService,
   ) {}
 
+  private async setRefreshCookie(token: string, res: Response): Promise<void> {
+    const isProd = this.config.get<string>('NODE_ENV') === 'production';
+
+    const cookieOptions: CookieOptions = {
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+    };
+
+    res.cookie('refresh_token', token, cookieOptions);
+  }
+
   @Post('signup')
   async singup(@Body() data, @Session() session: Record<string, any>) {
     const res = await lastValueFrom(this.service.send('auth/signup', data));
@@ -44,16 +57,13 @@ export class AuthController {
     return response.status(201).json(res);
   }
 
-  private async setRefreshCookie(token: string, res: Response): Promise<void> {
-    const isProd = this.config.get<string>('NODE_ENV') === 'production';
+  @Post('login')
+  async login(@Body() data, @Res() response: Response) {
+    const res = await lastValueFrom(this.service.send('auth/login', data));
 
-    const cookieOptions: CookieOptions = {
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
-    };
+    if (res.refresh_token)
+      await this.setRefreshCookie(res.refresh_token, response);
 
-    res.cookie('refresh_token', token, cookieOptions);
+    return response.status(201).json(res);
   }
 }
