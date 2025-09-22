@@ -9,7 +9,7 @@ import {
 import {
   ExceptionMessages,
   ExceptionTypes,
-} from 'src/common/constants/exception.constants';
+} from '@common/constants/exception.constants';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
