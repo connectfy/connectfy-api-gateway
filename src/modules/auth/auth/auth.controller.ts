@@ -1,13 +1,25 @@
-import { Body, Controller, Inject, Post, Res, Session } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { ClientProxy, Transport } from '@nestjs/microservices';
-import { CookieOptions, Response } from 'express';
+import {
+  Body,
+  Controller,
+  Inject,
+  Post,
+  Res,
+  Session,
+  UseGuards,
+} from '@nestjs/common';
 import { lastValueFrom } from 'rxjs';
+import { Cache } from 'cache-manager';
+import { ConfigService } from '@nestjs/config';
+import { CookieOptions, Response } from 'express';
+import { AuthGuard } from '@/src/guards/auth.guard';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { ClientProxy } from '@nestjs/microservices';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     @Inject('AUTH_SERVICE_TCP') private readonly service: ClientProxy,
+    @Inject(CACHE_MANAGER) private readonly cacheService: Cache,
     private readonly config: ConfigService,
   ) {}
 
@@ -69,19 +81,49 @@ export class AuthController {
 
   @Post('google/login')
   async googleAuthLogin(@Body() data, @Res() response: Response) {
-    const res = await lastValueFrom(this.service.send('auth/google/login', data));
+    const res = await lastValueFrom(
+      this.service.send('auth/google/login', data),
+    );
 
-    if (res.refresh_token) await this.setRefreshCookie(res.refresh_token, response);
+    if (res.refresh_token)
+      await this.setRefreshCookie(res.refresh_token, response);
 
     return response.status(201).json(res);
   }
 
   @Post('google/signup')
   async googleAuthSignup(@Body() data, @Res() response: Response) {
-    const res = await lastValueFrom(this.service.send('auth/google/signup', data));
+    const res = await lastValueFrom(
+      this.service.send('auth/google/signup', data),
+    );
 
-    if (res.refresh_token) await this.setRefreshCookie(res.refresh_token, response);
+    if (res.refresh_token)
+      await this.setRefreshCookie(res.refresh_token, response);
 
     return response.status(201).json(res);
+  }
+
+  @Post('forgot-password')
+  async forgotPassword(@Body() data) {
+    const res = lastValueFrom(this.service.send('auth/forgot-password', data));
+    return res;
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() data) {
+    const res = lastValueFrom(this.service.send('auth/reset-password', data));
+    return res;
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('logout')
+  async logout(@Body() data) {
+    const res = await lastValueFrom(this.service.send('auth/logout', data));
+
+    if (res.statusCode === 200) {
+      await this.cacheService.clear();
+    }
+
+    return res;
   }
 }
