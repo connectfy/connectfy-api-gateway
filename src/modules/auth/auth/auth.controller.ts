@@ -135,7 +135,19 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Post('remove-account')
-  async removeAccount(@Body() data) {
-    return await lastValueFrom(this.service.send('auth/remove-account', data));
+  async removeAccount(@Body() data, @Session() session: Record<string, any>) {
+    const res = await lastValueFrom(
+      this.service.send('auth/remove-account', data),
+    );
+
+    if (res.statusCode === 200) {
+      // Clear cache
+      this.cacheService.clear();
+
+      // Clear session
+      for (const key in session) {
+        delete session[key];
+      }
+    }
   }
 }
