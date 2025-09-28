@@ -37,7 +37,7 @@ export class AuthController {
   }
 
   @Post('signup')
-  async singup(@Body() data, @Session() session: Record<string, any>) {
+  async signup(@Body() data, @Session() session: Record<string, any>) {
     const res = await lastValueFrom(this.service.send('auth/signup', data));
 
     session.unverifiedUser = res.unverifiedUser;
@@ -125,5 +125,17 @@ export class AuthController {
     }
 
     return res;
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('delete-account')
+  async deleteAccount(@Body() data) {
+    return await lastValueFrom(this.service.send('auth/delete-account', data));
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('remove-account')
+  async removeAccount(@Body() data) {
+    return await lastValueFrom(this.service.send('auth/remove-account', data));
   }
 }
