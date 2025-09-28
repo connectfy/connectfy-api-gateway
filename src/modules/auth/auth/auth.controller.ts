@@ -140,14 +140,8 @@ export class AuthController {
       this.service.send('auth/remove-account', data),
     );
 
-    if (res.statusCode === 200) {
-      // Clear cache
-      this.cacheService.clear();
+    if (res.statusCode === 200) this.cacheService.clear();
 
-      // Clear session
-      for (const key in session) {
-        delete session[key];
-      }
-    }
+    return res;
   }
 }
