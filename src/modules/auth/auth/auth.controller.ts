@@ -11,7 +11,7 @@ import { lastValueFrom } from 'rxjs';
 import { Cache } from 'cache-manager';
 import { ConfigService } from '@nestjs/config';
 import { CookieOptions, Response } from 'express';
-import { AuthGuard } from '@/src/guards/auth.guard';
+import { AuthGuard } from '@guards/auth.guard';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ClientProxy } from '@nestjs/microservices';
 
