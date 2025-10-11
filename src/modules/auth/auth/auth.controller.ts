@@ -3,6 +3,7 @@ import {
   Controller,
   Inject,
   Post,
+  Req,
   Res,
   Session,
   UseGuards,
@@ -113,6 +114,19 @@ export class AuthController {
   async resetPassword(@Body() data) {
     const res = lastValueFrom(this.service.send('auth/reset-password', data));
     return res;
+  }
+
+  @Post('refresh')
+  async refreshToken(@Req() request, @Res() response: Response) {
+    const refreshToken = request.cookies?.refresh_token;
+
+    const res = await lastValueFrom(
+      this.service.send('auth/refreshToken', { refreshToken }),
+    );
+
+    await this.setRefreshCookie(res.refresh_token, response);
+
+    return response.status(200).json(res);
   }
 
   @UseGuards(AuthGuard)
