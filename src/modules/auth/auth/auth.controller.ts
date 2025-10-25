@@ -54,7 +54,7 @@ export class AuthController {
     @Res() response: Response,
   ) {
     data.unverifiedUser = session.unverifiedUser;
-    data.verifyCode = session.verifyCode;
+    data.code = session.verifyCode;
 
     const res = await lastValueFrom(
       this.service.send('auth/verify-signup', data),

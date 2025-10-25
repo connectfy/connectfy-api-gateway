@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { UserController } from './user.controller';
-import { AuthGuard } from '@/src/guards/auth.guard';
+import { AuthGuard } from '@guards/auth.guard';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule } from '@nestjs/config';
 
