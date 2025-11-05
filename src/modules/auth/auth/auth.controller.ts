@@ -158,4 +158,14 @@ export class AuthController {
 
     return res;
   }
+
+  @UseGuards(AuthGuard)
+  @Post('face-descriptor')
+  async faceDescriptor(@Body() data) {
+    const res = await lastValueFrom(
+      this.service.send('auth/faceDescriptor', data),
+    );
+
+    return res;
+  }
 }
