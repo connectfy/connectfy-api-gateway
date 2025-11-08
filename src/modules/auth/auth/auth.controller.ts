@@ -168,4 +168,13 @@ export class AuthController {
 
     return res;
   }
+
+  @Post('is-valid-token')
+  async isValidToken(@Body() data) {
+    const res = await lastValueFrom(
+      this.service.send('auth/is-valid-token', data),
+    );
+
+    return res;
+  }
 }
