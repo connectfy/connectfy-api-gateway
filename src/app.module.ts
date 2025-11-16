@@ -4,6 +4,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AuthModule } from '@modules/auth/auth.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { AccountModule } from './modules/account/account.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
     CacheModule.register({ isGlobal: true }),
     EventEmitterModule.forRoot({ global: true }),
     AuthModule,
+    AccountModule
   ],
 })
 export class AppModule {}
