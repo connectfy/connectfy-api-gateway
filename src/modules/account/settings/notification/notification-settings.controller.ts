@@ -1,6 +1,6 @@
 import { AuthGuard } from '@/src/guards/auth.guard';
 import { SafeQueryGuard } from '@/src/guards/safeQuery.guard';
-import { Body, Controller, Inject, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Inject, Patch, Post, Put, UseGuards } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { lastValueFrom } from 'rxjs';
 
@@ -20,7 +20,7 @@ export class NotificationSettingsController {
     return res;
   }
 
-  @Put('update')
+  @Patch('update')
   @UseGuards(AuthGuard)
   async update(@Body() data) {
     const res = await lastValueFrom(

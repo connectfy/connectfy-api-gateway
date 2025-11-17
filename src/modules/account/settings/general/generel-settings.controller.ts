@@ -5,6 +5,7 @@ import {
   Controller,
   Delete,
   Inject,
+  Patch,
   Post,
   Put,
   UseGuards,
@@ -28,7 +29,7 @@ export class GeneralSettingsController {
     return res;
   }
 
-  @Put('update')
+  @Patch('update')
   @UseGuards(AuthGuard)
   async update(@Body() data) {
     const res = await lastValueFrom(
