@@ -19,7 +19,7 @@ import { ConfigModule } from '@nestjs/config';
         name: 'ACCOUNT_SERVICE_TCP',
         transport: Transport.TCP,
         options: {
-          host: '0.0.0.0',
+          host: 'account-service',
           port: 5000,
         },
       },
