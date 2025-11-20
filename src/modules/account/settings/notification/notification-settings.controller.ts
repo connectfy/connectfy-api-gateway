@@ -7,7 +7,7 @@ import { lastValueFrom } from 'rxjs';
 @Controller('account/settings/notification-settings')
 export class NotificationSettingsController {
   constructor(
-    @Inject('AUTH_SERVICE_TCP') private readonly service: ClientProxy,
+    @Inject('ACCOUNT_SERVICE_TCP') private readonly service: ClientProxy,
   ) {}
 
   @Post('findOne')

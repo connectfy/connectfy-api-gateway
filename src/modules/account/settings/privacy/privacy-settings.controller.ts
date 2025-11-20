@@ -7,7 +7,7 @@ import { lastValueFrom } from 'rxjs';
 @Controller('account/settings/privacy-settings')
 export class PrivacySettingsController {
   constructor(
-    @Inject('AUTH_SERVICE_TCP') private readonly service: ClientProxy,
+    @Inject('ACCOUNT_SERVICE_TCP') private readonly service: ClientProxy,
   ) {}
 
   @Post('findOne')
