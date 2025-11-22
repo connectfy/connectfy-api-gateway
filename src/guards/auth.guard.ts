@@ -46,7 +46,7 @@ export class AuthGuard implements CanActivate {
 
     const result = await sendWithContext({
       client: this.authService,
-      endpoint: '/auth/refresh-token/verify-token',
+      endpoint: 'auth/refresh-token/verify-token',
       payload: { access_token },
     });
 
