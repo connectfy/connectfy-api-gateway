@@ -15,12 +15,14 @@ import { Cache } from 'cache-manager';
 import { ClientProxy } from '@nestjs/microservices';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { BaseException } from '../common/constants/custom.exception';
+import { ClsService } from 'nestjs-cls';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     @Inject('AUTH_SERVICE_TCP') private readonly authService: ClientProxy,
     @Inject(CACHE_MANAGER) private readonly cacheService: Cache,
+    private readonly cls: ClsService,
   ) {}
 
   public async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -62,6 +64,7 @@ export class AuthGuard implements CanActivate {
 
     await this.cacheService.set(access_token, result.user, 850);
     request.user = result.user;
+    this.cls.set('user', result.user);
     request.body = { ...request.body, _loggedUser: result.user };
 
     return true;

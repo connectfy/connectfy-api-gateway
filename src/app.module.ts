@@ -5,6 +5,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AuthModule } from '@modules/auth/auth.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { AccountModule } from './modules/account/account.module';
+import { ClsModule } from 'nestjs-cls';
 
 @Module({
   imports: [
@@ -22,6 +23,16 @@ import { AccountModule } from './modules/account/account.module';
         },
       },
     ]),
+    ClsModule.forRoot({
+      global: true,                // <– makes ClsService available everywhere
+      middleware: {
+        mount: true,               // <– wraps every HTTP request in a CLS context
+        // optional setup if you want to pre-fill something from req:
+        // setup: (cls, req) => {
+        //   cls.set('requestId', req.headers['x-request-id']);
+        // },
+      },
+    }),
     CacheModule.register({ isGlobal: true }),
     EventEmitterModule.forRoot({ global: true }),
     AuthModule,
