@@ -10,12 +10,12 @@ import {
   ExceptionTypes,
 } from '../common/constants/exception.constants';
 import { Request } from 'express';
-import { lastValueFrom } from 'rxjs';
 import { Cache } from 'cache-manager';
 import { ClientProxy } from '@nestjs/microservices';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { BaseException } from '../common/constants/custom.exception';
 import { ClsService } from 'nestjs-cls';
+import { sendWithContext } from '../common/helpers/microservice-request.helper';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -44,11 +44,11 @@ export class AuthGuard implements CanActivate {
       return true;
     }
 
-    const result = await lastValueFrom(
-      this.authService.send('auth/refresh-token/verify-token', {
-        access_token,
-      }),
-    );
+    const result = await sendWithContext({
+      client: this.authService,
+      endpoint: '/auth/refresh-token/verify-token',
+      payload: { access_token },
+    });
 
     if (
       !result ||

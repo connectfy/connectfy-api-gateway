@@ -1,8 +1,15 @@
+import { sendWithContext } from '@/src/common/helpers/microservice-request.helper';
 import { AuthGuard } from '@/src/guards/auth.guard';
 import { SafeQueryGuard } from '@/src/guards/safeQuery.guard';
-import { Body, Controller, Inject, Patch, Post, Put, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Inject,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { lastValueFrom } from 'rxjs';
 
 @Controller('account/settings/privacy-settings')
 export class PrivacySettingsController {
@@ -13,9 +20,11 @@ export class PrivacySettingsController {
   @Post('findOne')
   @UseGuards(AuthGuard, SafeQueryGuard)
   async findOne(@Body() data) {
-    const res = await lastValueFrom(
-      this.service.send('privacy-settings/findOne', data),
-    );
+    const res = await sendWithContext({
+      client: this.service,
+      endpoint: 'privacy-settings/findOne',
+      payload: data,
+    });
 
     return res;
   }
@@ -23,9 +32,11 @@ export class PrivacySettingsController {
   @Patch('update')
   @UseGuards(AuthGuard)
   async update(@Body() data) {
-    const res = await lastValueFrom(
-      this.service.send('privacy-settings/update', data),
-    );
+    const res = await sendWithContext({
+      client: this.service,
+      endpoint: 'notification-settings/update',
+      payload: data,
+    });
 
     return res;
   }

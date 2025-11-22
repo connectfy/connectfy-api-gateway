@@ -8,13 +8,13 @@ import {
   Session,
   UseGuards,
 } from '@nestjs/common';
-import { lastValueFrom } from 'rxjs';
 import { Cache } from 'cache-manager';
 import { ConfigService } from '@nestjs/config';
 import { CookieOptions, Response } from 'express';
 import { AuthGuard } from '@guards/auth.guard';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ClientProxy } from '@nestjs/microservices';
+import { sendWithContext } from '@/src/common/helpers/microservice-request.helper';
 
 @Controller('auth')
 export class AuthController {
@@ -39,7 +39,11 @@ export class AuthController {
 
   @Post('signup')
   async signup(@Body() data, @Session() session: Record<string, any>) {
-    const res = await lastValueFrom(this.service.send('auth/signup', data));
+    const res = await sendWithContext({
+      client: this.service,
+      endpoint: 'auth/signup',
+      payload: data,
+    });
 
     session.unverifiedUser = res.unverifiedUser;
     session.verifyCode = res.verifyCode;
@@ -56,9 +60,11 @@ export class AuthController {
     data.unverifiedUser = session.unverifiedUser;
     data.code = session.verifyCode;
 
-    const res = await lastValueFrom(
-      this.service.send('auth/verify-signup', data),
-    );
+    const res = await sendWithContext({
+      client: this.service,
+      endpoint: 'auth/verify-signup',
+      payload: data,
+    });
 
     if (res.refresh_token) {
       await this.setRefreshCookie(res.refresh_token, response);
@@ -72,7 +78,11 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() data, @Res() response: Response) {
-    const res = await lastValueFrom(this.service.send('auth/login', data));
+    const res = await sendWithContext({
+      client: this.service,
+      endpoint: 'auth/login',
+      payload: data,
+    });
 
     if (res.refresh_token)
       await this.setRefreshCookie(res.refresh_token, response);
@@ -82,9 +92,11 @@ export class AuthController {
 
   @Post('google/login')
   async googleAuthLogin(@Body() data, @Res() response: Response) {
-    const res = await lastValueFrom(
-      this.service.send('auth/google/login', data),
-    );
+    const res = await sendWithContext({
+      client: this.service,
+      endpoint: 'auth/google/login',
+      payload: data,
+    });
 
     if (res.refresh_token)
       await this.setRefreshCookie(res.refresh_token, response);
@@ -94,9 +106,11 @@ export class AuthController {
 
   @Post('google/signup')
   async googleAuthSignup(@Body() data, @Res() response: Response) {
-    const res = await lastValueFrom(
-      this.service.send('auth/google/signup', data),
-    );
+    const res = await sendWithContext({
+      client: this.service,
+      endpoint: 'auth/google/signup',
+      payload: data,
+    });
 
     if (res.refresh_token)
       await this.setRefreshCookie(res.refresh_token, response);
@@ -106,13 +120,21 @@ export class AuthController {
 
   @Post('forgot-password')
   async forgotPassword(@Body() data) {
-    const res = lastValueFrom(this.service.send('auth/forgot-password', data));
+    const res = sendWithContext({
+      client: this.service,
+      endpoint: 'auth/forgot-password',
+      payload: data,
+    });
     return res;
   }
 
   @Post('reset-password')
   async resetPassword(@Body() data) {
-    const res = lastValueFrom(this.service.send('auth/reset-password', data));
+    const res = sendWithContext({
+      client: this.service,
+      endpoint: 'auth/reset-password',
+      payload: data,
+    });
     return res;
   }
 
@@ -120,9 +142,11 @@ export class AuthController {
   async refreshToken(@Req() request, @Res() response: Response) {
     const refresh_token = request.cookies?.refresh_token;
 
-    const res = await lastValueFrom(
-      this.service.send('auth/refreshToken', { refresh_token }),
-    );
+    const res = await sendWithContext({
+      client: this.service,
+      endpoint: 'auth/refreshToken',
+      payload: { refresh_token },
+    });
 
     await this.setRefreshCookie(res.refresh_token, response);
 
@@ -132,7 +156,11 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Post('logout')
   async logout(@Body() data) {
-    const res = await lastValueFrom(this.service.send('auth/logout', data));
+    const res = await sendWithContext({
+      client: this.service,
+      endpoint: 'auth/logout',
+      payload: data,
+    });
 
     if (res.statusCode === 200) {
       await this.cacheService.clear();
@@ -144,15 +172,21 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Post('delete-account')
   async deleteAccount(@Body() data) {
-    return await lastValueFrom(this.service.send('auth/delete-account', data));
+    return await sendWithContext({
+      client: this.service,
+      endpoint: 'auth/delete-account',
+      payload: data,
+    });
   }
 
   @UseGuards(AuthGuard)
   @Post('remove-account')
-  async removeAccount(@Body() data, @Session() session: Record<string, any>) {
-    const res = await lastValueFrom(
-      this.service.send('auth/remove-account', data),
-    );
+  async removeAccount(@Body() data) {
+    const res = await sendWithContext({
+      client: this.service,
+      endpoint: 'auth/remove-account',
+      payload: data,
+    });
 
     if (res.statusCode === 200) this.cacheService.clear();
 
@@ -162,18 +196,22 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Post('face-descriptor')
   async faceDescriptor(@Body() data) {
-    const res = await lastValueFrom(
-      this.service.send('auth/faceDescriptor', data),
-    );
+    const res = await sendWithContext({
+      client: this.service,
+      endpoint: 'auth/faceDescriptor',
+      payload: data,
+    });
 
     return res;
   }
 
   @Post('is-valid-token')
   async isValidToken(@Body() data) {
-    const res = await lastValueFrom(
-      this.service.send('auth/is-valid-token', data),
-    );
+    const res = await sendWithContext({
+      client: this.service,
+      endpoint: 'auth/is-valid-token',
+      payload: data,
+    });
 
     return res;
   }
