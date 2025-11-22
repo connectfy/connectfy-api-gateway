@@ -118,10 +118,10 @@ export class AuthController {
 
   @Post('refresh')
   async refreshToken(@Req() request, @Res() response: Response) {
-    const refreshToken = request.cookies?.refresh_token;
+    const refresh_token = request.cookies?.refresh_token;
 
     const res = await lastValueFrom(
-      this.service.send('auth/refreshToken', { refreshToken }),
+      this.service.send('auth/refreshToken', { refresh_token }),
     );
 
     await this.setRefreshCookie(res.refresh_token, response);
