@@ -10,11 +10,14 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { ClsService } from 'nestjs-cls';
 
 @Controller('account/settings/notification-settings')
 export class NotificationSettingsController {
   constructor(
     @Inject('ACCOUNT_SERVICE_TCP') private readonly service: ClientProxy,
+
+    private readonly cls: ClsService,
   ) {}
 
   @Post('findOne')
@@ -24,6 +27,7 @@ export class NotificationSettingsController {
       client: this.service,
       endpoint: 'notification-settings/findOne',
       payload: data,
+      cls: this.cls
     });
 
     return res;
@@ -36,6 +40,7 @@ export class NotificationSettingsController {
       client: this.service,
       endpoint: 'notification-settings/update',
       payload: data,
+      cls: this.cls
     });
 
     return res;

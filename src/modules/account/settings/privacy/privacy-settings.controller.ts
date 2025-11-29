@@ -10,11 +10,14 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { ClsService } from 'nestjs-cls';
 
 @Controller('account/settings/privacy-settings')
 export class PrivacySettingsController {
   constructor(
     @Inject('ACCOUNT_SERVICE_TCP') private readonly service: ClientProxy,
+
+    private readonly cls: ClsService,
   ) {}
 
   @Post('findOne')
@@ -24,6 +27,7 @@ export class PrivacySettingsController {
       client: this.service,
       endpoint: 'privacy-settings/findOne',
       payload: data,
+      cls: this.cls,
     });
 
     return res;
@@ -36,6 +40,7 @@ export class PrivacySettingsController {
       client: this.service,
       endpoint: 'notification-settings/update',
       payload: data,
+      cls: this.cls,
     });
 
     return res;

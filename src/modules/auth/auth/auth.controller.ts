@@ -15,6 +15,7 @@ import { AuthGuard } from '@guards/auth.guard';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ClientProxy } from '@nestjs/microservices';
 import { sendWithContext } from '@/src/common/helpers/microservice-request.helper';
+import { ClsService } from 'nestjs-cls';
 
 @Controller('auth')
 export class AuthController {
@@ -22,6 +23,7 @@ export class AuthController {
     @Inject('AUTH_SERVICE_TCP') private readonly service: ClientProxy,
     @Inject(CACHE_MANAGER) private readonly cacheService: Cache,
     private readonly config: ConfigService,
+    private readonly cls: ClsService,
   ) {}
 
   private async setRefreshCookie(token: string, res: Response): Promise<void> {
@@ -43,6 +45,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/signup',
       payload: data,
+      cls: this.cls
     });
 
     session.unverifiedUser = res.unverifiedUser;
@@ -64,6 +67,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/verify-signup',
       payload: data,
+      cls: this.cls
     });
 
     if (res.refresh_token) {
@@ -82,6 +86,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/login',
       payload: data,
+      cls: this.cls
     });
 
     if (res.refresh_token)
@@ -96,6 +101,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/google/login',
       payload: data,
+      cls: this.cls
     });
 
     if (res.refresh_token)
@@ -110,6 +116,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/google/signup',
       payload: data,
+      cls: this.cls
     });
 
     if (res.refresh_token)
@@ -124,6 +131,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/forgot-password',
       payload: data,
+      cls: this.cls
     });
     return res;
   }
@@ -134,6 +142,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/reset-password',
       payload: data,
+      cls: this.cls
     });
     return res;
   }
@@ -146,6 +155,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/refreshToken',
       payload: { refresh_token },
+      cls: this.cls
     });
 
     await this.setRefreshCookie(res.refresh_token, response);
@@ -160,6 +170,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/logout',
       payload: data,
+      cls: this.cls
     });
 
     if (res.statusCode === 200) {
@@ -176,6 +187,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/delete-account',
       payload: data,
+      cls: this.cls
     });
   }
 
@@ -186,6 +198,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/remove-account',
       payload: data,
+      cls: this.cls
     });
 
     if (res.statusCode === 200) this.cacheService.clear();
@@ -200,6 +213,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/faceDescriptor',
       payload: data,
+      cls: this.cls
     });
 
     return res;
@@ -211,6 +225,20 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/is-valid-token',
       payload: data,
+      cls: this.cls
+    });
+
+    return res;
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('authenticate-user')
+  async authenticateUser(@Body() data) {
+    const res = await sendWithContext({
+      client: this.service,
+      endpoint: 'auth/authenticate-user',
+      payload: data,
+      cls: this.cls
     });
 
     return res;

@@ -1,4 +1,5 @@
 import { ClientKafka, ClientProxy } from '@nestjs/microservices';
+import { ClsService } from 'nestjs-cls';
 
 interface ISendWithContextParams {
   endpoint: string;
@@ -12,8 +13,10 @@ interface IEmitWithContextParams {
 
 export interface ISendWithContextClientParams extends ISendWithContextParams {
   client: ClientProxy;
+  cls?: ClsService;
 }
 
 export interface IEmitWithContextClientParams extends IEmitWithContextParams {
   client: ClientKafka;
+  cls?: ClsService;
 }
