@@ -38,7 +38,7 @@ export class PrivacySettingsController {
   async update(@Body() data) {
     const res = await sendWithContext({
       client: this.service,
-      endpoint: 'notification-settings/update',
+      endpoint: 'privacy-settings/update',
       payload: data,
       cls: this.cls,
     });
