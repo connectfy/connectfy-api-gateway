@@ -59,6 +59,19 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard)
+  @Patch('change-email/verify')
+  async verifyEmailChange(@Body() data) {
+    const res = await sendWithContext({
+      client: this.service,
+      endpoint: 'user/change-email/verify',
+      payload: data,
+      cls: this.cls,
+    });
+
+    return res;
+  }
+
+  @UseGuards(AuthGuard)
   @Patch('change-password')
   async changePassword(@Body() data) {
     const res = await sendWithContext({
