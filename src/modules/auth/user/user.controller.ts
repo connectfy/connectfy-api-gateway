@@ -83,4 +83,17 @@ export class UserController {
 
     return res;
   }
+
+  @UseGuards(AuthGuard)
+  @Patch('change-phone-number')
+  async changePhoneNumber(@Body() data) {
+    const res = await sendWithContext({
+      client: this.service,
+      endpoint: 'user/change-phone-number',
+      payload: data,
+      cls: this.cls,
+    });
+
+    return res;
+  }
 }
