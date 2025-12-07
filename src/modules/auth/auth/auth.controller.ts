@@ -45,7 +45,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/signup',
       payload: data,
-      cls: this.cls
+      cls: this.cls,
     });
 
     session.unverifiedUser = res.unverifiedUser;
@@ -67,7 +67,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/verify-signup',
       payload: data,
-      cls: this.cls
+      cls: this.cls,
     });
 
     if (res.refresh_token) {
@@ -86,7 +86,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/login',
       payload: data,
-      cls: this.cls
+      cls: this.cls,
     });
 
     if (res.refresh_token)
@@ -101,7 +101,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/google/login',
       payload: data,
-      cls: this.cls
+      cls: this.cls,
     });
 
     if (res.refresh_token)
@@ -116,7 +116,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/google/signup',
       payload: data,
-      cls: this.cls
+      cls: this.cls,
     });
 
     if (res.refresh_token)
@@ -131,7 +131,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/forgot-password',
       payload: data,
-      cls: this.cls
+      cls: this.cls,
     });
     return res;
   }
@@ -142,7 +142,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/reset-password',
       payload: data,
-      cls: this.cls
+      cls: this.cls,
     });
     return res;
   }
@@ -155,7 +155,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/refreshToken',
       payload: { refresh_token },
-      cls: this.cls
+      cls: this.cls,
     });
 
     await this.setRefreshCookie(res.refresh_token, response);
@@ -170,7 +170,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/logout',
       payload: data,
-      cls: this.cls
+      cls: this.cls,
     });
 
     if (res.statusCode === 200) {
@@ -183,28 +183,32 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Post('delete-account')
   async deleteAccount(@Body() data) {
-    return await sendWithContext({
+    const res = await sendWithContext({
       client: this.service,
       endpoint: 'auth/delete-account',
       payload: data,
-      cls: this.cls
-    });
-  }
-
-  @UseGuards(AuthGuard)
-  @Post('remove-account')
-  async removeAccount(@Body() data) {
-    const res = await sendWithContext({
-      client: this.service,
-      endpoint: 'auth/remove-account',
-      payload: data,
-      cls: this.cls
+      cls: this.cls,
     });
 
     if (res.statusCode === 200) this.cacheService.clear();
 
     return res;
   }
+
+  // @UseGuards(AuthGuard)
+  // @Post('remove-account')
+  // async removeAccount(@Body() data) {
+  //   const res = await sendWithContext({
+  //     client: this.service,
+  //     endpoint: 'auth/remove-account',
+  //     payload: data,
+  //     cls: this.cls
+  //   });
+
+  //   if (res.statusCode === 200) this.cacheService.clear();
+
+  //   return res;
+  // }
 
   @UseGuards(AuthGuard)
   @Post('face-descriptor')
@@ -213,7 +217,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/faceDescriptor',
       payload: data,
-      cls: this.cls
+      cls: this.cls,
     });
 
     return res;
@@ -225,7 +229,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/is-valid-token',
       payload: data,
-      cls: this.cls
+      cls: this.cls,
     });
 
     return res;
@@ -238,7 +242,7 @@ export class AuthController {
       client: this.service,
       endpoint: 'auth/authenticate-user',
       payload: data,
-      cls: this.cls
+      cls: this.cls,
     });
 
     return res;
