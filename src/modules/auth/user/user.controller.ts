@@ -29,6 +29,8 @@ export class UserController {
       cls: this.cls,
     });
 
+    console.log("me result: ", res);
+
     return res;
   }
 

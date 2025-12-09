@@ -77,7 +77,7 @@ export class AuthController {
       delete session.verifyCode;
     }
 
-    return response.status(201).json(res);
+    return response.status(201).json({ access_token: res.access_token });
   }
 
   @Post('login')
@@ -92,7 +92,7 @@ export class AuthController {
     if (res.refresh_token)
       await this.setRefreshCookie(res.refresh_token, response);
 
-    return response.status(201).json(res);
+    return response.status(201).json({ access_token: res.access_token });
   }
 
   @Post('google/login')
@@ -107,7 +107,7 @@ export class AuthController {
     if (res.refresh_token)
       await this.setRefreshCookie(res.refresh_token, response);
 
-    return response.status(201).json(res);
+    return response.status(201).json({ access_token: res.access_token });
   }
 
   @Post('google/signup')
@@ -122,7 +122,7 @@ export class AuthController {
     if (res.refresh_token)
       await this.setRefreshCookie(res.refresh_token, response);
 
-    return response.status(201).json(res);
+    return response.status(201).json({ access_token: res.access_token });
   }
 
   @Post('forgot-password')
@@ -160,7 +160,7 @@ export class AuthController {
 
     await this.setRefreshCookie(res.refresh_token, response);
 
-    return response.status(200).json(res);
+    return response.status(200).json({ access_token: res.access_token });
   }
 
   @UseGuards(AuthGuard)
@@ -246,5 +246,20 @@ export class AuthController {
     });
 
     return res;
+  }
+
+  @Post('restore-account')
+  async restoreAccount(@Body() data, @Res() response: Response) {
+    const res = await sendWithContext({
+      client: this.service,
+      endpoint: 'auth/restore-account',
+      payload: data,
+      cls: this.cls,
+    });
+
+    if (res.refresh_token)
+      await this.setRefreshCookie(res.refresh_token, response);
+
+    return response.status(201).json({ access_token: res.access_token });
   }
 }
