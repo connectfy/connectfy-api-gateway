@@ -190,7 +190,7 @@ export class AuthController {
       cls: this.cls,
     });
 
-    if (res.statusCode === 200) this.cacheService.clear();
+    if (res.statusCode === 200) await this.cacheService.clear();
 
     return res;
   }
@@ -205,7 +205,7 @@ export class AuthController {
   //     cls: this.cls
   //   });
 
-  //   if (res.statusCode === 200) this.cacheService.clear();
+  //   if (res.statusCode === 200) await this.cacheService.clear();
 
   //   return res;
   // }
@@ -261,5 +261,20 @@ export class AuthController {
       await this.setRefreshCookie(res.refresh_token, response);
 
     return response.status(201).json({ access_token: res.access_token });
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('deactivate-account')
+  async deactivateAccount(@Body() data) {
+    const res = await sendWithContext({
+      client: this.service,
+      endpoint: 'auth/deactivate-account',
+      payload: data,
+      cls: this.cls,
+    });
+
+    if (res.statusCode === 200) await this.cacheService.clear();
+
+    return res;
   }
 }
