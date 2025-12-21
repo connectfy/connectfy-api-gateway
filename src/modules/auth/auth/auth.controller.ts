@@ -165,7 +165,9 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Post('logout')
-  async logout(@Body() data) {
+  async logout(@Body() data, @Req() request, @Res() response: Response) {
+    const reqUser = request.user;
+
     const res = await sendWithContext({
       client: this.service,
       endpoint: 'auth/logout',
@@ -174,10 +176,12 @@ export class AuthController {
     });
 
     if (res.statusCode === 200) {
-      await this.cacheService.clear();
+      const cacheKey = `user:${reqUser.user._id}`;
+      await this.cacheService.del(cacheKey);
+      response.cookie('refresh_token', null, { httpOnly: true });
     }
 
-    return res;
+    return response.status(200).json(res);
   }
 
   @UseGuards(AuthGuard)
