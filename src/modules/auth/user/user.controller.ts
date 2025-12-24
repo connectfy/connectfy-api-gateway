@@ -56,6 +56,18 @@ export class UserController {
       cls: this.cls,
     });
 
+    if (res._id) {
+      const cacheKey = `user:${res._id}`;
+      const cachedUser: Record<string, any> | undefined = await this.cacheService.get(cacheKey);
+
+      if (cachedUser) {
+        await this.cacheService.del(cacheKey);
+
+        const updatedUser = { ...cachedUser, user: { ...cachedUser.user, username: res.username } };
+        await this.cacheService.set(cacheKey, updatedUser, 60 * 60 * 1000); // 1 hour
+      }
+    }
+
     return res;
   }
 
@@ -82,6 +94,18 @@ export class UserController {
       cls: this.cls,
     });
 
+    if (res._id) {
+      const cacheKey = `user:${res._id}`;
+      const cachedUser: Record<string, any> | undefined = await this.cacheService.get(cacheKey);
+
+      if (cachedUser) {
+        await this.cacheService.del(cacheKey);
+
+        const updatedUser = { ...cachedUser, user: { ...cachedUser.user, email: res.email } };
+        await this.cacheService.set(cacheKey, updatedUser, 60 * 60 * 1000); // 1 hour
+      }
+    }
+
     return res;
   }
 
@@ -107,6 +131,18 @@ export class UserController {
       payload: data,
       cls: this.cls,
     });
+
+    if (res._id) {
+      const cacheKey = `user:${res._id}`;
+      const cachedUser: Record<string, any> | undefined = await this.cacheService.get(cacheKey);
+
+      if (cachedUser) {
+        await this.cacheService.del(cacheKey);
+
+        const updatedUser = { ...cachedUser, user: { ...cachedUser.user, phoneNumber: res.phoneNumber } };
+        await this.cacheService.set(cacheKey, updatedUser, 60 * 60 * 1000); // 1 hour
+      }
+    }
 
     return res;
   }
