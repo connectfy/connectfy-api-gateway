@@ -1,6 +1,7 @@
 import { sendWithContext } from '@/src/common/helpers/microservice-request.helper';
 import { AuthGuard } from '@/src/guards/auth.guard';
 import { SafeQueryGuard } from '@/src/guards/safeQuery.guard';
+import { Cache } from '@nestjs/cache-manager';
 import {
   Body,
   Controller,
@@ -18,6 +19,7 @@ export class GeneralSettingsController {
     @Inject('ACCOUNT_SERVICE_TCP') private readonly service: ClientProxy,
 
     private readonly cls: ClsService,
+    private readonly cacheService: Cache,
   ) {}
 
   @Post('findOne')
@@ -43,19 +45,49 @@ export class GeneralSettingsController {
       cls: this.cls,
     });
 
+    if (res._id) {
+      const cacheKey = `user:${res.userId}`;
+      const cachedUser: Record<string, any> | undefined =
+        await this.cacheService.get(cacheKey);
+
+      if (cachedUser) {
+        await this.cacheService.del(cacheKey);
+        const updatedUser = {
+          ...cachedUser,
+          settings: { ...cachedUser.settings, generalSettings: res },
+        };
+
+        await this.cacheService.set(cacheKey, updatedUser, 60 * 60 * 1000); // 1 hour
+      }
+    }
+
     return res;
   }
 
   @Patch('reset')
   @UseGuards(AuthGuard)
   async reset() {
-    console.log("reset in api gateway");
     const res = await sendWithContext({
       client: this.service,
       endpoint: 'general-settings/reset',
       cls: this.cls,
     });
-    console.log("res in api gateway");
+
+    if (res.generalSettings) {
+      const cacheKey = `user:${res.generalSettings.userId}`;
+      const cachedUser: Record<string, any> | undefined =
+        await this.cacheService.get(cacheKey);
+
+      if (cachedUser) {
+        await this.cacheService.del(cacheKey);
+        const updatedUser = {
+          ...cachedUser,
+          settings: res,
+        };
+
+        await this.cacheService.set(cacheKey, updatedUser, 60 * 60 * 1000); // 1 hour
+      }
+    }
 
     return res;
   }

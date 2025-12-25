@@ -1,6 +1,7 @@
 import { sendWithContext } from '@/src/common/helpers/microservice-request.helper';
 import { AuthGuard } from '@/src/guards/auth.guard';
 import { SafeQueryGuard } from '@/src/guards/safeQuery.guard';
+import { Cache } from '@nestjs/cache-manager';
 import {
   Body,
   Controller,
@@ -18,6 +19,7 @@ export class NotificationSettingsController {
     @Inject('ACCOUNT_SERVICE_TCP') private readonly service: ClientProxy,
 
     private readonly cls: ClsService,
+    private readonly cacheService: Cache,
   ) {}
 
   @Post('findOne')
@@ -27,7 +29,7 @@ export class NotificationSettingsController {
       client: this.service,
       endpoint: 'notification-settings/findOne',
       payload: data,
-      cls: this.cls
+      cls: this.cls,
     });
 
     return res;
@@ -40,8 +42,24 @@ export class NotificationSettingsController {
       client: this.service,
       endpoint: 'notification-settings/update',
       payload: data,
-      cls: this.cls
+      cls: this.cls,
     });
+
+    if (res._id) {
+      const cacheKey = `user:${res.userId}`;
+      const cachedUser: Record<string, any> | undefined =
+        await this.cacheService.get(cacheKey);
+
+      if (cachedUser) {
+        await this.cacheService.del(cacheKey);
+        const updatedUser = {
+          ...cachedUser,
+          settings: { ...cachedUser.settings, notificationSettings: res },
+        };
+
+        await this.cacheService.set(cacheKey, updatedUser, 60 * 60 * 1000); // 1 hour
+      }
+    }
 
     return res;
   }

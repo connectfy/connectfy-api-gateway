@@ -176,8 +176,7 @@ export class AuthController {
     });
 
     if (res.statusCode === 200) {
-      const cacheKey = `user:${reqUser.user._id}`;
-      await this.cacheService.del(cacheKey);
+      await this.cacheService.clear();
       response.cookie('refresh_token', null, { httpOnly: true });
     }
 
