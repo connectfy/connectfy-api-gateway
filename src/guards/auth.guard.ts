@@ -45,6 +45,7 @@ export class AuthGuard implements CanActivate {
         ExceptionMessages.UNAUTHORIZED_MESSAGE,
         HttpStatus.UNAUTHORIZED,
         ExceptionTypes.UNAUTHORIZED,
+        { navigate: true },
       );
     }
 
@@ -52,29 +53,22 @@ export class AuthGuard implements CanActivate {
 
     let payload: any = null;
 
-    // 1️⃣ VERIFY ACCESS TOKEN
-    try {
-      payload = this.jwtService.verify(accessToken, {
-        secret: accessSecret,
-        ignoreExpiration: true,
-      });
-    } catch (err: any) {
-      if (err.name !== 'TokenExpiredError') {
-        throw new BaseException(
-          ExceptionMessages.UNAUTHORIZED_MESSAGE,
-          HttpStatus.UNAUTHORIZED,
-          ExceptionTypes.UNAUTHORIZED,
-        );
-      }
-    }
+    // VERIFY ACCESS TOKEN
+    payload = this.jwtService.verify(accessToken, {
+      secret: accessSecret,
+      ignoreExpiration: true,
+    });
 
     const isExpired = Date.now() >= payload.exp * 1000;
 
-    // 2️⃣ TRY CACHE (ONLY IF TOKEN WAS VALID)
+    await this.cacheService.clear();
+
+    // TRY CACHE (ONLY IF TOKEN WAS VALID)
     if (!isExpired && payload && payload._id) {
       const userId = payload._id;
       const cacheKey = `user:${userId}`;
       const cachedUser = await this.cacheService.get(cacheKey);
+      console.log('cahcedUser: ', cachedUser);
 
       if (cachedUser) {
         this.attachUser(request, cachedUser);
@@ -82,17 +76,19 @@ export class AuthGuard implements CanActivate {
       }
     }
 
-    // 3️⃣ REFRESH FLOW (TOKEN EXPIRED OR CACHE MISS)
+    // REFRESH FLOW (TOKEN EXPIRED OR CACHE MISS)
     const result = await sendWithContext({
       client: this.authService,
       endpoint: 'auth/refresh-token/verify-token',
       payload: {
         access_token: accessToken,
+        refresh_token: refreshToken
       },
       cls: this.cls,
     });
 
     if (!result || !result.user) {
+      console.log('result error: ');
       throw new BaseException(
         ExceptionMessages.UNAUTHORIZED_MESSAGE,
         HttpStatus.UNAUTHORIZED,

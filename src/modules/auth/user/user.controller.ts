@@ -7,7 +7,6 @@ import {
   Inject,
   Patch,
   Post,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
@@ -24,13 +23,13 @@ export class UserController {
 
   @UseGuards(AuthGuard)
   @Post('me')
-  async me(@Body() data, @Req() request) {
-    const reqUser = request.user;
+  async me(@Body() data) {
+    const reqUser = await this.cls.get("user");
 
     if (reqUser) {
       const cacheKey = `user:${reqUser.user._id}`;
-
       const cachedUser = await this.cacheService.get(cacheKey);
+      
       if (cachedUser) {
         return cachedUser;
       }

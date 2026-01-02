@@ -165,19 +165,26 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Post('logout')
-  async logout(@Body() data, @Req() request, @Res() response: Response) {
-    const reqUser = request.user;
+  async logout(@Body() data, @Res() response: Response) {
+    const reqUser = await this.cls.get("user");
 
     const res = await sendWithContext({
       client: this.service,
       endpoint: 'auth/logout',
-      payload: data,
+      payload: { ...data, userId: reqUser?.user?._id },
       cls: this.cls,
     });
 
     if (res.statusCode === 200) {
-      await this.cacheService.clear();
-      response.cookie('refresh_token', null, { httpOnly: true });
+      const userId = reqUser?.user?._id;
+      if (userId) await this.cacheService.del(`user:${userId}`);
+
+      response.clearCookie('refresh_token', {
+        httpOnly: true,
+        secure: this.config.get<string>('NODE_ENV') === 'production',
+        sameSite:
+          this.config.get<string>('NODE_ENV') === 'production' ? 'none' : 'lax',
+      });
     }
 
     return response.status(200).json(res);
@@ -185,17 +192,29 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Post('delete-account')
-  async deleteAccount(@Body() data) {
+  async deleteAccount(@Body() data, @Res() response: Response) {
+    const user = await this.cls.get('user');
+    const userId = user?.user?._id;
+
     const res = await sendWithContext({
       client: this.service,
       endpoint: 'auth/delete-account',
-      payload: data,
+      payload: { ...data, userId },
       cls: this.cls,
     });
 
-    if (res.statusCode === 200) await this.cacheService.clear();
+    if (res.statusCode === 200) {
+      if (userId) await this.cacheService.del(`user:${userId}`);
 
-    return res;
+      response.clearCookie('refresh_token', {
+        httpOnly: true,
+        secure: this.config.get<string>('NODE_ENV') === 'production',
+        sameSite:
+          this.config.get<string>('NODE_ENV') === 'production' ? 'none' : 'lax',
+      });
+    }
+
+    return response.status(200).json(res);
   }
 
   // @UseGuards(AuthGuard)
@@ -208,7 +227,7 @@ export class AuthController {
   //     cls: this.cls
   //   });
 
-  //   if (res.statusCode === 200) await this.cacheService.clear();
+  //   if (res.statusCode === 200) await this.cacheService.clear(); /// BU daha sonra dəyişdirilməlidir
 
   //   return res;
   // }
@@ -276,7 +295,12 @@ export class AuthController {
       cls: this.cls,
     });
 
-    if (res.statusCode === 200) await this.cacheService.clear();
+    if (res.statusCode === 200) {
+      const user = await this.cls.get('user');
+      const userId = user?.user?._id;
+
+      await this.cacheService.del(`user:${userId}`);
+    }
 
     return res;
   }
