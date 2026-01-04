@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { Cache } from 'cache-manager';
 import { ConfigService } from '@nestjs/config';
-import { CookieOptions, Response } from 'express';
+import { CookieOptions, Request, Response } from 'express';
 import { AuthGuard } from '@guards/auth.guard';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ClientProxy } from '@nestjs/microservices';
@@ -58,10 +58,20 @@ export class AuthController {
   async verifySignup(
     @Body() data,
     @Session() session: Record<string, any>,
+    @Req() request: Request,
     @Res() response: Response,
   ) {
     data.unverifiedUser = session.unverifiedUser;
     data.code = session.verifyCode;
+    data.requestData = {
+      headers: {
+        'user-agent': request.headers['user-agent'],
+        'x-forwarded-for': request.headers['x-forwarded-for'],
+        'x-real-ip': request.headers['x-real-ip'],
+        'cf-connecting-ip': request.headers['cf-connecting-ip'],
+      },
+      ip: request.socket.remoteAddress,
+    };
 
     const res = await sendWithContext({
       client: this.service,
@@ -81,7 +91,21 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(@Body() data, @Res() response: Response) {
+  async login(
+    @Body() data,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    data.requestData = {
+      headers: {
+        'user-agent': request.headers['user-agent'],
+        'x-forwarded-for': request.headers['x-forwarded-for'],
+        'x-real-ip': request.headers['x-real-ip'],
+        'cf-connecting-ip': request.headers['cf-connecting-ip'],
+      },
+      ip: request.socket.remoteAddress,
+    };
+
     const res = await sendWithContext({
       client: this.service,
       endpoint: 'auth/login',
@@ -96,7 +120,21 @@ export class AuthController {
   }
 
   @Post('google/login')
-  async googleAuthLogin(@Body() data, @Res() response: Response) {
+  async googleAuthLogin(
+    @Body() data,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    data.requestData = {
+      headers: {
+        'user-agent': request.headers['user-agent'],
+        'x-forwarded-for': request.headers['x-forwarded-for'],
+        'x-real-ip': request.headers['x-real-ip'],
+        'cf-connecting-ip': request.headers['cf-connecting-ip'],
+      },
+      ip: request.socket.remoteAddress,
+    };
+
     const res = await sendWithContext({
       client: this.service,
       endpoint: 'auth/google/login',
@@ -111,7 +149,21 @@ export class AuthController {
   }
 
   @Post('google/signup')
-  async googleAuthSignup(@Body() data, @Res() response: Response) {
+  async googleAuthSignup(
+    @Body() data,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    data.requestData = {
+      headers: {
+        'user-agent': request.headers['user-agent'],
+        'x-forwarded-for': request.headers['x-forwarded-for'],
+        'x-real-ip': request.headers['x-real-ip'],
+        'cf-connecting-ip': request.headers['cf-connecting-ip'],
+      },
+      ip: request.socket.remoteAddress,
+    };
+
     const res = await sendWithContext({
       client: this.service,
       endpoint: 'auth/google/signup',
@@ -149,12 +201,23 @@ export class AuthController {
 
   @Post('refresh')
   async refreshToken(@Req() request, @Res() response: Response) {
-    const refresh_token = request.cookies?.refresh_token;
+    let data: Record<string, any> = {};
+
+    data.refresh_token = request.cookies?.refresh_token;
+    data.requestData = {
+      headers: {
+        'user-agent': request.headers['user-agent'],
+        'x-forwarded-for': request.headers['x-forwarded-for'],
+        'x-real-ip': request.headers['x-real-ip'],
+        'cf-connecting-ip': request.headers['cf-connecting-ip'],
+      },
+      ip: request.socket.remoteAddress,
+    };
 
     const res = await sendWithContext({
       client: this.service,
       endpoint: 'auth/refreshToken',
-      payload: { refresh_token },
+      payload: data,
       cls: this.cls,
     });
 
@@ -166,7 +229,7 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Post('logout')
   async logout(@Body() data, @Res() response: Response) {
-    const reqUser = await this.cls.get("user");
+    const reqUser = await this.cls.get('user');
 
     const res = await sendWithContext({
       client: this.service,

@@ -68,7 +68,6 @@ export class AuthGuard implements CanActivate {
       const userId = payload._id;
       const cacheKey = `user:${userId}`;
       const cachedUser = await this.cacheService.get(cacheKey);
-      console.log('cahcedUser: ', cachedUser);
 
       if (cachedUser) {
         this.attachUser(request, cachedUser);
@@ -88,7 +87,6 @@ export class AuthGuard implements CanActivate {
     });
 
     if (!result || !result.user) {
-      console.log('result error: ');
       throw new BaseException(
         ExceptionMessages.UNAUTHORIZED_MESSAGE,
         HttpStatus.UNAUTHORIZED,
