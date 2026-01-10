@@ -77,3 +77,17 @@ export const ENV = {
     },
   },
 };
+
+export const EXPIRE_DATES = {
+  JWT: {
+    ONE_HOUR: '1h',
+    ONE_DAY: '1d',
+    ONE_MONTH: '30d',
+  },
+  TOKEN: {
+    ONE_MINUTE: 60 * 1000,
+    ONE_HOUR: 60 * 60 * 1000,
+    ONE_DAY: 24 * 60 * 60 * 1000,
+    ONE_MONTH: 30 * 60 * 60 * 1000,
+  },
+};

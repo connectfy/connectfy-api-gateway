@@ -19,7 +19,7 @@ import {
 } from '../common/constants/exception.constants';
 import { BaseException } from '../common/constants/custom.exception';
 import { sendWithContext } from '../common/helpers/microservice-request.helper';
-import { ENV, MICROSERVICE_NAMES } from '../common/constants/constants';
+import { ENV, EXPIRE_DATES, MICROSERVICE_NAMES } from '../common/constants/constants';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -102,7 +102,7 @@ export class AuthGuard implements CanActivate {
     await this.cacheService.set(
       cacheKey,
       result.user,
-      60 * 60 * 1000, // 60 minutes
+      EXPIRE_DATES.TOKEN.ONE_HOUR,
     );
     this.attachUser(request, result.user);
     return true;

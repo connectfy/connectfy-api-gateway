@@ -1,4 +1,4 @@
-import { MICROSERVICE_NAMES } from '@/src/common/constants/constants';
+import { EXPIRE_DATES, MICROSERVICE_NAMES } from '@/src/common/constants/constants';
 import { sendWithContext } from '@/src/common/helpers/microservice-request.helper';
 import { AuthGuard } from '@guards/auth.guard';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -64,7 +64,7 @@ export class UserController {
         await this.cacheService.del(cacheKey);
 
         const updatedUser = { ...cachedUser, user: { ...cachedUser.user, username: res.username } };
-        await this.cacheService.set(cacheKey, updatedUser, 60 * 60 * 1000); // 1 hour
+        await this.cacheService.set(cacheKey, updatedUser, EXPIRE_DATES.TOKEN.ONE_HOUR); // 1 hour
       }
     }
 
@@ -102,7 +102,7 @@ export class UserController {
         await this.cacheService.del(cacheKey);
 
         const updatedUser = { ...cachedUser, user: { ...cachedUser.user, email: res.email } };
-        await this.cacheService.set(cacheKey, updatedUser, 60 * 60 * 1000); // 1 hour
+        await this.cacheService.set(cacheKey, updatedUser, EXPIRE_DATES.TOKEN.ONE_HOUR); // 1 hour
       }
     }
 
@@ -140,7 +140,7 @@ export class UserController {
         await this.cacheService.del(cacheKey);
 
         const updatedUser = { ...cachedUser, user: { ...cachedUser.user, phoneNumber: res.phoneNumber } };
-        await this.cacheService.set(cacheKey, updatedUser, 60 * 60 * 1000); // 1 hour
+        await this.cacheService.set(cacheKey, updatedUser, EXPIRE_DATES.TOKEN.ONE_HOUR); // 1 hour
       }
     }
 

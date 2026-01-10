@@ -1,4 +1,4 @@
-import { MICROSERVICE_NAMES } from '@/src/common/constants/constants';
+import { EXPIRE_DATES, MICROSERVICE_NAMES } from '@/src/common/constants/constants';
 import { sendWithContext } from '@/src/common/helpers/microservice-request.helper';
 import { AuthGuard } from '@/src/guards/auth.guard';
 import { SafeQueryGuard } from '@/src/guards/safeQuery.guard';
@@ -58,7 +58,7 @@ export class PrivacySettingsController {
           settings: { ...cachedUser.settings, privacySettings: res },
         };
         
-        await this.cacheService.set(cacheKey, updatedUser, 60 * 60 * 1000); // 1 hour
+        await this.cacheService.set(cacheKey, updatedUser, EXPIRE_DATES.TOKEN.ONE_HOUR); // 1 hour
       }
     }
 

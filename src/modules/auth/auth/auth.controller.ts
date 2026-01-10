@@ -16,7 +16,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ClientProxy } from '@nestjs/microservices';
 import { sendWithContext } from '@/src/common/helpers/microservice-request.helper';
 import { ClsService } from 'nestjs-cls';
-import { ENV, MICROSERVICE_NAMES } from '@/src/common/constants/constants';
+import { ENV, EXPIRE_DATES, MICROSERVICE_NAMES } from '@/src/common/constants/constants';
 
 @Controller('auth')
 export class AuthController {
@@ -31,7 +31,7 @@ export class AuthController {
     const isProd = this.config.get<string>(ENV.CORE.APP.NODE_ENV) === 'production';
 
     const cookieOptions: CookieOptions = {
-      maxAge: 30 * 24 * 60 * 60 * 1000,
+      maxAge: EXPIRE_DATES.TOKEN.ONE_MONTH,
       httpOnly: true,
       secure: isProd,
       sameSite: isProd ? 'none' : 'lax',
