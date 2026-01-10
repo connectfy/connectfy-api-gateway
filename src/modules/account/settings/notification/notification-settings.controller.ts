@@ -1,3 +1,4 @@
+import { MICROSERVICE_NAMES } from '@/src/common/constants/constants';
 import { sendWithContext } from '@/src/common/helpers/microservice-request.helper';
 import { AuthGuard } from '@/src/guards/auth.guard';
 import { SafeQueryGuard } from '@/src/guards/safeQuery.guard';
@@ -16,7 +17,7 @@ import { ClsService } from 'nestjs-cls';
 @Controller('account/settings/notification-settings')
 export class NotificationSettingsController {
   constructor(
-    @Inject('ACCOUNT_SERVICE_TCP') private readonly service: ClientProxy,
+    @Inject(MICROSERVICE_NAMES.ACCOUNT.TCP) private readonly service: ClientProxy,
 
     private readonly cls: ClsService,
     private readonly cacheService: Cache,

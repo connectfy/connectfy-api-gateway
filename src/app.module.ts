@@ -7,6 +7,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { AccountModule } from './modules/account/account.module';
 import { ClsModule } from 'nestjs-cls';
 import { JwtModule } from '@nestjs/jwt';
+import { MICROSERVICE_NAMES } from './common/constants/constants';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { JwtModule } from '@nestjs/jwt';
     }),
     ClientsModule.register([
       {
-        name: 'AUTH_SERVICE_TCP',
+        name: MICROSERVICE_NAMES.AUTH.TCP,
         transport: Transport.TCP,
         options: {
           host: 'auth-service',

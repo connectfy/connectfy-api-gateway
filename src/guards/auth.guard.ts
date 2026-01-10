@@ -19,11 +19,12 @@ import {
 } from '../common/constants/exception.constants';
 import { BaseException } from '../common/constants/custom.exception';
 import { sendWithContext } from '../common/helpers/microservice-request.helper';
+import { ENV, MICROSERVICE_NAMES } from '../common/constants/constants';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
-    @Inject('AUTH_SERVICE_TCP')
+    @Inject(MICROSERVICE_NAMES.AUTH.TCP)
     private readonly authService: ClientProxy,
 
     @Inject(CACHE_MANAGER)
@@ -49,7 +50,9 @@ export class AuthGuard implements CanActivate {
       );
     }
 
-    const accessSecret = this.configService.get<string>('JWT_ACCESS_SECRET');
+    const accessSecret = this.configService.get<string>(
+      ENV.AUTH.JWT.ACCESS.SECRET,
+    );
 
     let payload: any = null;
 
@@ -81,7 +84,7 @@ export class AuthGuard implements CanActivate {
       endpoint: 'auth/refresh-token/verify-token',
       payload: {
         access_token: accessToken,
-        refresh_token: refreshToken
+        refresh_token: refreshToken,
       },
       cls: this.cls,
     });

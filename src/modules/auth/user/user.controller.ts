@@ -1,3 +1,4 @@
+import { MICROSERVICE_NAMES } from '@/src/common/constants/constants';
 import { sendWithContext } from '@/src/common/helpers/microservice-request.helper';
 import { AuthGuard } from '@guards/auth.guard';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -15,7 +16,7 @@ import { ClsService } from 'nestjs-cls';
 @Controller('user')
 export class UserController {
   constructor(
-    @Inject('AUTH_SERVICE_TCP') private readonly service: ClientProxy,
+    @Inject(MICROSERVICE_NAMES.AUTH.TCP) private readonly service: ClientProxy,
     @Inject(CACHE_MANAGER)
     private readonly cacheService: Cache,
     private readonly cls: ClsService,

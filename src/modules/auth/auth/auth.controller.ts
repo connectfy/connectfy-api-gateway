@@ -16,18 +16,19 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ClientProxy } from '@nestjs/microservices';
 import { sendWithContext } from '@/src/common/helpers/microservice-request.helper';
 import { ClsService } from 'nestjs-cls';
+import { ENV, MICROSERVICE_NAMES } from '@/src/common/constants/constants';
 
 @Controller('auth')
 export class AuthController {
   constructor(
-    @Inject('AUTH_SERVICE_TCP') private readonly service: ClientProxy,
+    @Inject(MICROSERVICE_NAMES.AUTH.TCP) private readonly service: ClientProxy,
     @Inject(CACHE_MANAGER) private readonly cacheService: Cache,
     private readonly config: ConfigService,
     private readonly cls: ClsService,
   ) {}
 
   private async setRefreshCookie(token: string, res: Response): Promise<void> {
-    const isProd = this.config.get<string>('NODE_ENV') === 'production';
+    const isProd = this.config.get<string>(ENV.CORE.APP.NODE_ENV) === 'production';
 
     const cookieOptions: CookieOptions = {
       maxAge: 30 * 24 * 60 * 60 * 1000,
@@ -244,9 +245,9 @@ export class AuthController {
 
       response.clearCookie('refresh_token', {
         httpOnly: true,
-        secure: this.config.get<string>('NODE_ENV') === 'production',
+        secure: this.config.get<string>(ENV.CORE.APP.NODE_ENV) === 'production',
         sameSite:
-          this.config.get<string>('NODE_ENV') === 'production' ? 'none' : 'lax',
+          this.config.get<string>(ENV.CORE.APP.NODE_ENV) === 'production' ? 'none' : 'lax',
       });
     }
 
@@ -271,9 +272,9 @@ export class AuthController {
 
       response.clearCookie('refresh_token', {
         httpOnly: true,
-        secure: this.config.get<string>('NODE_ENV') === 'production',
+        secure: this.config.get<string>(ENV.CORE.APP.NODE_ENV) === 'production',
         sameSite:
-          this.config.get<string>('NODE_ENV') === 'production' ? 'none' : 'lax',
+          this.config.get<string>(ENV.CORE.APP.NODE_ENV) === 'production' ? 'none' : 'lax',
       });
     }
 
