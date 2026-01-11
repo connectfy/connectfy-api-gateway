@@ -64,8 +64,6 @@ export class AuthGuard implements CanActivate {
 
     const isExpired = Date.now() >= payload.exp * 1000;
 
-    await this.cacheService.clear();
-
     // TRY CACHE (ONLY IF TOKEN WAS VALID)
     if (!isExpired && payload && payload._id) {
       const userId = payload._id;
@@ -97,7 +95,7 @@ export class AuthGuard implements CanActivate {
       );
     }
 
-    // 4️⃣ SAVE TO CACHE
+    // SAVE TO CACHE
     const cacheKey = `user:${result.user.user._id}`;
     await this.cacheService.set(
       cacheKey,
@@ -111,7 +109,6 @@ export class AuthGuard implements CanActivate {
   // ==========================
   // HELPERS
   // ==========================
-
   private extractTokenFromHeader(request: Request): string | undefined {
     const authHeader = request.headers.authorization;
     if (!authHeader) return undefined;

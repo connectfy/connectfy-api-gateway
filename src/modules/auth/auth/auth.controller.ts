@@ -16,7 +16,11 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ClientProxy } from '@nestjs/microservices';
 import { sendWithContext } from '@/src/common/helpers/microservice-request.helper';
 import { ClsService } from 'nestjs-cls';
-import { ENV, EXPIRE_DATES, MICROSERVICE_NAMES } from '@/src/common/constants/constants';
+import {
+  ENV,
+  EXPIRE_DATES,
+  MICROSERVICE_NAMES,
+} from '@/src/common/constants/constants';
 
 @Controller('auth')
 export class AuthController {
@@ -28,7 +32,8 @@ export class AuthController {
   ) {}
 
   private async setRefreshCookie(token: string, res: Response): Promise<void> {
-    const isProd = this.config.get<string>(ENV.CORE.APP.NODE_ENV) === 'production';
+    const isProd =
+      this.config.get<string>(ENV.CORE.APP.NODE_ENV) === 'production';
 
     const cookieOptions: CookieOptions = {
       maxAge: EXPIRE_DATES.TOKEN.ONE_MONTH,
@@ -200,12 +205,14 @@ export class AuthController {
     return res;
   }
 
+  @UseGuards(AuthGuard)
   @Post('refresh')
-  async refreshToken(@Req() request, @Res() response: Response) {
-    let data: Record<string, any> = {};
+  async refreshToken(@Body() data, @Req() request, @Res() response: Response) {
+    let finalData: Record<string, any> = {};
 
-    data.refresh_token = request.cookies?.refresh_token;
-    data.requestData = {
+    finalData.deviceId = data.deviceId;
+    finalData.refresh_token = request.cookies?.refresh_token;
+    finalData.requestData = {
       headers: {
         'user-agent': request.headers['user-agent'],
         'x-forwarded-for': request.headers['x-forwarded-for'],
@@ -218,7 +225,7 @@ export class AuthController {
     const res = await sendWithContext({
       client: this.service,
       endpoint: 'auth/refreshToken',
-      payload: data,
+      payload: finalData,
       cls: this.cls,
     });
 
@@ -247,7 +254,9 @@ export class AuthController {
         httpOnly: true,
         secure: this.config.get<string>(ENV.CORE.APP.NODE_ENV) === 'production',
         sameSite:
-          this.config.get<string>(ENV.CORE.APP.NODE_ENV) === 'production' ? 'none' : 'lax',
+          this.config.get<string>(ENV.CORE.APP.NODE_ENV) === 'production'
+            ? 'none'
+            : 'lax',
       });
     }
 
@@ -274,7 +283,9 @@ export class AuthController {
         httpOnly: true,
         secure: this.config.get<string>(ENV.CORE.APP.NODE_ENV) === 'production',
         sameSite:
-          this.config.get<string>(ENV.CORE.APP.NODE_ENV) === 'production' ? 'none' : 'lax',
+          this.config.get<string>(ENV.CORE.APP.NODE_ENV) === 'production'
+            ? 'none'
+            : 'lax',
       });
     }
 
