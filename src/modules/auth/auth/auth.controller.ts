@@ -8,30 +8,32 @@ import {
   Session,
   UseGuards,
 } from '@nestjs/common';
-import { Cache } from 'cache-manager';
 import { ConfigService } from '@nestjs/config';
 import { CookieOptions, Request, Response } from 'express';
 import { AuthGuard } from '@guards/auth.guard';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ClientProxy } from '@nestjs/microservices';
 import { sendWithContext } from '@/src/common/helpers/microservice-request.helper';
 import { ClsService } from 'nestjs-cls';
 import {
+  CACHE_KEYS,
   ENV,
   EXPIRE_DATES,
   MICROSERVICE_NAMES,
 } from '@/src/common/constants/constants';
+import { CLS_KEYS } from '@common/enums/enums';
+import { AppCacheService } from '@modules/cache/cache.service';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     @Inject(MICROSERVICE_NAMES.AUTH.TCP) private readonly service: ClientProxy,
-    @Inject(CACHE_MANAGER) private readonly cacheService: Cache,
+
+    private readonly cacheService: AppCacheService,
     private readonly config: ConfigService,
     private readonly cls: ClsService,
   ) {}
 
-  private async setRefreshCookie(token: string, res: Response): Promise<void> {
+  private setRefreshCookie(token: string, res: Response): void {
     const isProd =
       this.config.get<string>(ENV.CORE.APP.NODE_ENV) === 'production';
 
@@ -87,7 +89,7 @@ export class AuthController {
     });
 
     if (res.refresh_token) {
-      await this.setRefreshCookie(res.refresh_token, response);
+      this.setRefreshCookie(res.refresh_token, response);
 
       delete session.unverifiedUser;
       delete session.verifyCode;
@@ -119,8 +121,7 @@ export class AuthController {
       cls: this.cls,
     });
 
-    if (res.refresh_token)
-      await this.setRefreshCookie(res.refresh_token, response);
+    if (res.refresh_token) this.setRefreshCookie(res.refresh_token, response);
 
     return response.status(201).json({ access_token: res.access_token });
   }
@@ -148,8 +149,7 @@ export class AuthController {
       cls: this.cls,
     });
 
-    if (res.refresh_token)
-      await this.setRefreshCookie(res.refresh_token, response);
+    if (res.refresh_token) this.setRefreshCookie(res.refresh_token, response);
 
     return response.status(201).json({ access_token: res.access_token });
   }
@@ -177,38 +177,35 @@ export class AuthController {
       cls: this.cls,
     });
 
-    if (res.refresh_token)
-      await this.setRefreshCookie(res.refresh_token, response);
+    if (res.refresh_token) this.setRefreshCookie(res.refresh_token, response);
 
     return response.status(201).json({ access_token: res.access_token });
   }
 
   @Post('forgot-password')
   async forgotPassword(@Body() data) {
-    const res = sendWithContext({
+    return sendWithContext({
       client: this.service,
       endpoint: 'auth/forgot-password',
       payload: data,
       cls: this.cls,
     });
-    return res;
   }
 
   @Post('reset-password')
   async resetPassword(@Body() data) {
-    const res = sendWithContext({
+    return sendWithContext({
       client: this.service,
       endpoint: 'auth/reset-password',
       payload: data,
       cls: this.cls,
     });
-    return res;
   }
 
   @UseGuards(AuthGuard)
   @Post('refresh')
   async refreshToken(@Body() data, @Req() request, @Res() response: Response) {
-    let finalData: Record<string, any> = {};
+    const finalData: Record<string, any> = {};
 
     finalData.deviceId = data.deviceId;
     finalData.refresh_token = request.cookies?.refresh_token;
@@ -229,7 +226,7 @@ export class AuthController {
       cls: this.cls,
     });
 
-    await this.setRefreshCookie(res.refresh_token, response);
+    this.setRefreshCookie(res.refresh_token, response);
 
     return response.status(200).json({ access_token: res.access_token });
   }
@@ -237,7 +234,7 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Post('logout')
   async logout(@Body() data, @Res() response: Response) {
-    const reqUser = await this.cls.get('user');
+    const reqUser = await this.cls.get(CLS_KEYS.USER);
 
     const res = await sendWithContext({
       client: this.service,
@@ -248,7 +245,8 @@ export class AuthController {
 
     if (res.statusCode === 200) {
       const userId = reqUser?.user?._id;
-      if (userId) await this.cacheService.del(`user:${userId}`);
+      const cacheKey = CACHE_KEYS.USER(userId);
+      if (userId) await this.cacheService.remove(cacheKey);
 
       response.clearCookie('refresh_token', {
         httpOnly: true,
@@ -266,7 +264,7 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Post('delete-account')
   async deleteAccount(@Body() data, @Res() response: Response) {
-    const user = await this.cls.get('user');
+    const user = await this.cls.get(CLS_KEYS.USER);
     const userId = user?.user?._id;
 
     const res = await sendWithContext({
@@ -277,7 +275,8 @@ export class AuthController {
     });
 
     if (res.statusCode === 200) {
-      if (userId) await this.cacheService.del(`user:${userId}`);
+      const cacheKey = CACHE_KEYS.USER(userId);
+      if (userId) await this.cacheService.remove(cacheKey);
 
       response.clearCookie('refresh_token', {
         httpOnly: true,
@@ -310,39 +309,33 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Post('face-descriptor')
   async faceDescriptor(@Body() data) {
-    const res = await sendWithContext({
+    return await sendWithContext({
       client: this.service,
       endpoint: 'auth/faceDescriptor',
       payload: data,
       cls: this.cls,
     });
-
-    return res;
   }
 
   @Post('is-valid-token')
   async isValidToken(@Body() data) {
-    const res = await sendWithContext({
+    return await sendWithContext({
       client: this.service,
       endpoint: 'auth/is-valid-token',
       payload: data,
       cls: this.cls,
     });
-
-    return res;
   }
 
   @UseGuards(AuthGuard)
   @Post('authenticate-user')
   async authenticateUser(@Body() data) {
-    const res = await sendWithContext({
+    return await sendWithContext({
       client: this.service,
       endpoint: 'auth/authenticate-user',
       payload: data,
       cls: this.cls,
     });
-
-    return res;
   }
 
   @Post('restore-account')
@@ -354,8 +347,7 @@ export class AuthController {
       cls: this.cls,
     });
 
-    if (res.refresh_token)
-      await this.setRefreshCookie(res.refresh_token, response);
+    if (res.refresh_token) this.setRefreshCookie(res.refresh_token, response);
 
     return response.status(201).json({ access_token: res.access_token });
   }
@@ -371,10 +363,11 @@ export class AuthController {
     });
 
     if (res.statusCode === 200) {
-      const user = await this.cls.get('user');
+      const user = await this.cls.get(CLS_KEYS.USER);
       const userId = user?.user?._id;
 
-      await this.cacheService.del(`user:${userId}`);
+      const cacheKey = CACHE_KEYS.USER(userId);
+      await this.cacheService.remove(cacheKey);
     }
 
     return res;

@@ -1,7 +1,9 @@
-import { EXPIRE_DATES, MICROSERVICE_NAMES } from '@/src/common/constants/constants';
+import {
+  CACHE_KEYS,
+  MICROSERVICE_NAMES,
+} from '@/src/common/constants/constants';
 import { sendWithContext } from '@/src/common/helpers/microservice-request.helper';
 import { AuthGuard } from '@guards/auth.guard';
-import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import {
   Body,
   Controller,
@@ -12,38 +14,38 @@ import {
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { ClsService } from 'nestjs-cls';
+import { CLS_KEYS } from '@common/enums/enums';
+import { AppCacheService } from '@modules/cache/cache.service';
 
 @Controller('user')
 export class UserController {
   constructor(
     @Inject(MICROSERVICE_NAMES.AUTH.TCP) private readonly service: ClientProxy,
-    @Inject(CACHE_MANAGER)
-    private readonly cacheService: Cache,
+
+    private readonly cacheService: AppCacheService,
     private readonly cls: ClsService,
   ) {}
 
   @UseGuards(AuthGuard)
   @Post('me')
   async me(@Body() data) {
-    const reqUser = await this.cls.get("user");
+    const reqUser = await this.cls.get(CLS_KEYS.USER);
 
     if (reqUser) {
-      const cacheKey = `user:${reqUser.user._id}`;
+      const cacheKey = CACHE_KEYS.USER(reqUser.user._id);
       const cachedUser = await this.cacheService.get(cacheKey);
-      
+
       if (cachedUser) {
         return cachedUser;
       }
     }
 
-    const res = await sendWithContext({
+    return await sendWithContext({
       client: this.service,
       endpoint: 'user/me',
       payload: data,
       cls: this.cls,
     });
-
-    return res;
   }
 
   @UseGuards(AuthGuard)
@@ -57,14 +59,21 @@ export class UserController {
     });
 
     if (res._id) {
-      const cacheKey = `user:${res._id}`;
-      const cachedUser: Record<string, any> | undefined = await this.cacheService.get(cacheKey);
+      const cacheKey = CACHE_KEYS.USER(res._id);
+      const cachedUser: Record<string, any> | undefined =
+        await this.cacheService.get(cacheKey);
 
       if (cachedUser) {
-        await this.cacheService.del(cacheKey);
+        await this.cacheService.remove(cacheKey);
 
-        const updatedUser = { ...cachedUser, user: { ...cachedUser.user, username: res.username } };
-        await this.cacheService.set(cacheKey, updatedUser, EXPIRE_DATES.TOKEN.ONE_HOUR); // 1 hour
+        const updatedUser = {
+          ...cachedUser,
+          user: { ...cachedUser.user, username: res.username },
+        };
+        await this.cacheService.set({
+          key: cacheKey,
+          data: updatedUser,
+        });
       }
     }
 
@@ -74,14 +83,12 @@ export class UserController {
   @UseGuards(AuthGuard)
   @Patch('change-email')
   async changeEmail(@Body() data) {
-    const res = await sendWithContext({
+    return await sendWithContext({
       client: this.service,
       endpoint: 'user/change-email',
       payload: data,
       cls: this.cls,
     });
-
-    return res;
   }
 
   @UseGuards(AuthGuard)
@@ -95,14 +102,21 @@ export class UserController {
     });
 
     if (res._id) {
-      const cacheKey = `user:${res._id}`;
-      const cachedUser: Record<string, any> | undefined = await this.cacheService.get(cacheKey);
+      const cacheKey = CACHE_KEYS.USER(res._id);
+      const cachedUser: Record<string, any> | undefined =
+        await this.cacheService.get(cacheKey);
 
       if (cachedUser) {
-        await this.cacheService.del(cacheKey);
+        await this.cacheService.remove(cacheKey);
 
-        const updatedUser = { ...cachedUser, user: { ...cachedUser.user, email: res.email } };
-        await this.cacheService.set(cacheKey, updatedUser, EXPIRE_DATES.TOKEN.ONE_HOUR); // 1 hour
+        const updatedUser = {
+          ...cachedUser,
+          user: { ...cachedUser.user, email: res.email },
+        };
+        await this.cacheService.set({
+          key: cacheKey,
+          data: updatedUser,
+        });
       }
     }
 
@@ -112,14 +126,12 @@ export class UserController {
   @UseGuards(AuthGuard)
   @Patch('change-password')
   async changePassword(@Body() data) {
-    const res = await sendWithContext({
+    return await sendWithContext({
       client: this.service,
       endpoint: 'user/change-password',
       payload: data,
       cls: this.cls,
     });
-
-    return res;
   }
 
   @UseGuards(AuthGuard)
@@ -133,14 +145,21 @@ export class UserController {
     });
 
     if (res._id) {
-      const cacheKey = `user:${res._id}`;
-      const cachedUser: Record<string, any> | undefined = await this.cacheService.get(cacheKey);
+      const cacheKey = CACHE_KEYS.USER(res._id);
+      const cachedUser: Record<string, any> | undefined =
+        await this.cacheService.get(cacheKey);
 
       if (cachedUser) {
-        await this.cacheService.del(cacheKey);
+        await this.cacheService.remove(cacheKey);
 
-        const updatedUser = { ...cachedUser, user: { ...cachedUser.user, phoneNumber: res.phoneNumber } };
-        await this.cacheService.set(cacheKey, updatedUser, EXPIRE_DATES.TOKEN.ONE_HOUR); // 1 hour
+        const updatedUser = {
+          ...cachedUser,
+          user: { ...cachedUser.user, phoneNumber: res.phoneNumber },
+        };
+        await this.cacheService.set({
+          key: cacheKey,
+          data: updatedUser,
+        });
       }
     }
 

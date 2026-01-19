@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { CacheModule } from '@nestjs/cache-manager';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AuthModule } from '@modules/auth/auth.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { AccountModule } from './modules/account/account.module';
+import { AccountModule } from '@modules/account/account.module';
 import { ClsModule } from 'nestjs-cls';
 import { JwtModule } from '@nestjs/jwt';
-import { MICROSERVICE_NAMES } from './common/constants/constants';
+import { MICROSERVICE_NAMES } from '@common/constants/constants';
+import { AppCacheModule } from '@modules/cache/cache.module';
 
 @Module({
   imports: [
@@ -35,8 +35,8 @@ import { MICROSERVICE_NAMES } from './common/constants/constants';
         // },
       },
     }),
+    AppCacheModule,
     JwtModule.register({ global: true }),
-    CacheModule.register({ isGlobal: true }),
     EventEmitterModule.forRoot({ global: true }),
     AuthModule,
     AccountModule,

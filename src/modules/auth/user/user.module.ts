@@ -4,6 +4,7 @@ import { AuthGuard } from '@guards/auth.guard';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule } from '@nestjs/config';
 import { MICROSERVICE_NAMES } from '@/src/common/constants/constants';
+import { AppCacheModule } from '@modules/cache/cache.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { MICROSERVICE_NAMES } from '@/src/common/constants/constants';
       },
     ]),
     ConfigModule,
+    AppCacheModule,
   ],
   providers: [AuthGuard],
   controllers: [UserController],

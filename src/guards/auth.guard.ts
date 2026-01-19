@@ -6,20 +6,24 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { Cache } from 'cache-manager';
 import { ClientProxy } from '@nestjs/microservices';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { ClsService } from 'nestjs-cls';
-
 import {
   ExceptionMessages,
   ExceptionTypes,
-} from '../common/constants/exception.constants';
-import { BaseException } from '../common/constants/custom.exception';
-import { sendWithContext } from '../common/helpers/microservice-request.helper';
-import { ENV, EXPIRE_DATES, MICROSERVICE_NAMES } from '../common/constants/constants';
+} from '@common/constants/exception.constants';
+import { BaseException } from '@common/constants/custom.exception';
+import { sendWithContext } from '@common/helpers/microservice-request.helper';
+import {
+  ENV,
+  CACHE_KEYS,
+  EXPIRE_DATES,
+  MICROSERVICE_NAMES,
+} from '@common/constants/constants';
+import { CLS_KEYS } from '@common/enums/enums';
+import { AppCacheService } from '@modules/cache/cache.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -27,8 +31,7 @@ export class AuthGuard implements CanActivate {
     @Inject(MICROSERVICE_NAMES.AUTH.TCP)
     private readonly authService: ClientProxy,
 
-    @Inject(CACHE_MANAGER)
-    private readonly cacheService: Cache,
+    private readonly cacheService: AppCacheService,
 
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
@@ -67,7 +70,7 @@ export class AuthGuard implements CanActivate {
     // TRY CACHE (ONLY IF TOKEN WAS VALID)
     if (!isExpired && payload && payload._id) {
       const userId = payload._id;
-      const cacheKey = `user:${userId}`;
+      const cacheKey = CACHE_KEYS.USER(userId);
       const cachedUser = await this.cacheService.get(cacheKey);
 
       if (cachedUser) {
@@ -96,12 +99,11 @@ export class AuthGuard implements CanActivate {
     }
 
     // SAVE TO CACHE
-    const cacheKey = `user:${result.user.user._id}`;
-    await this.cacheService.set(
-      cacheKey,
-      result.user,
-      EXPIRE_DATES.TOKEN.ONE_HOUR,
-    );
+    const cacheKey = CACHE_KEYS.USER(result.user.user._id);
+    await this.cacheService.set({
+      key: cacheKey,
+      data: result.user,
+    });
     this.attachUser(request, result.user);
     return true;
   }
@@ -119,7 +121,7 @@ export class AuthGuard implements CanActivate {
 
   private attachUser(request: any, user: any) {
     request.user = user;
-    this.cls.set('user', user);
+    this.cls.set(CLS_KEYS.USER, user);
     request.body = {
       ...request.body,
       _loggedUser: user,

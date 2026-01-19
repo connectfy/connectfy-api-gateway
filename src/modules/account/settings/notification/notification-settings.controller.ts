@@ -1,8 +1,10 @@
-import { EXPIRE_DATES, MICROSERVICE_NAMES } from '@/src/common/constants/constants';
+import {
+  CACHE_KEYS,
+  MICROSERVICE_NAMES,
+} from '@/src/common/constants/constants';
 import { sendWithContext } from '@/src/common/helpers/microservice-request.helper';
 import { AuthGuard } from '@/src/guards/auth.guard';
 import { SafeQueryGuard } from '@/src/guards/safeQuery.guard';
-import { Cache } from '@nestjs/cache-manager';
 import {
   Body,
   Controller,
@@ -13,27 +15,27 @@ import {
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { ClsService } from 'nestjs-cls';
+import { AppCacheService } from '@modules/cache/cache.service';
 
 @Controller('account/settings/notification-settings')
 export class NotificationSettingsController {
   constructor(
-    @Inject(MICROSERVICE_NAMES.ACCOUNT.TCP) private readonly service: ClientProxy,
+    @Inject(MICROSERVICE_NAMES.ACCOUNT.TCP)
+    private readonly service: ClientProxy,
 
     private readonly cls: ClsService,
-    private readonly cacheService: Cache,
+    private readonly cacheService: AppCacheService,
   ) {}
 
   @Post('findOne')
   @UseGuards(AuthGuard, SafeQueryGuard)
   async findOne(@Body() data) {
-    const res = await sendWithContext({
+    return await sendWithContext({
       client: this.service,
       endpoint: 'notification-settings/findOne',
       payload: data,
       cls: this.cls,
     });
-
-    return res;
   }
 
   @Patch('update')
@@ -47,18 +49,21 @@ export class NotificationSettingsController {
     });
 
     if (res._id) {
-      const cacheKey = `user:${res.userId}`;
+      const cacheKey = CACHE_KEYS.USER(res.userId);
       const cachedUser: Record<string, any> | undefined =
         await this.cacheService.get(cacheKey);
 
       if (cachedUser) {
-        await this.cacheService.del(cacheKey);
+        await this.cacheService.remove(cacheKey);
         const updatedUser = {
           ...cachedUser,
           settings: { ...cachedUser.settings, notificationSettings: res },
         };
 
-        await this.cacheService.set(cacheKey, updatedUser, EXPIRE_DATES.TOKEN.ONE_HOUR); // 1 hour
+        await this.cacheService.set({
+          key: cacheKey,
+          data: updatedUser,
+        });
       }
     }
 

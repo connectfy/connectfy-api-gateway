@@ -91,3 +91,7 @@ export const EXPIRE_DATES = {
     ONE_MONTH: 30 * 60 * 60 * 1000,
   },
 };
+
+export const CACHE_KEYS = {
+  USER: (id: string) => `user:${id}`,
+};
