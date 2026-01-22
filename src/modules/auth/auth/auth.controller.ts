@@ -306,17 +306,6 @@ export class AuthController {
   //   return res;
   // }
 
-  @UseGuards(AuthGuard)
-  @Post('face-descriptor')
-  async faceDescriptor(@Body() data) {
-    return await sendWithContext({
-      client: this.service,
-      endpoint: 'auth/faceDescriptor',
-      payload: data,
-      cls: this.cls,
-    });
-  }
-
   @Post('is-valid-token')
   async isValidToken(@Body() data) {
     return await sendWithContext({
