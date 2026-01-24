@@ -2,12 +2,12 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AuthModule } from '@modules/auth/auth.module';
-import { ClientsModule, Transport } from '@nestjs/microservices';
 import { AccountModule } from '@modules/account/account.module';
 import { ClsModule } from 'nestjs-cls';
 import { JwtModule } from '@nestjs/jwt';
-import { MICROSERVICE_NAMES } from '@common/constants/constants';
 import { AppCacheModule } from '@modules/cache/cache.module';
+import { TcpConnectionsModule } from '@/src/services/app-connections/tcp-connections.module';
+import { KafkaConnectionsModule } from '@/src/services/app-connections/kafka-connections.module';
 
 @Module({
   imports: [
@@ -15,16 +15,6 @@ import { AppCacheModule } from '@modules/cache/cache.module';
       envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
       isGlobal: true,
     }),
-    ClientsModule.register([
-      {
-        name: MICROSERVICE_NAMES.AUTH.TCP,
-        transport: Transport.TCP,
-        options: {
-          host: 'auth-service',
-          port: 4000,
-        },
-      },
-    ]),
     ClsModule.forRoot({
       global: true, // <– makes ClsService available everywhere
       middleware: {
@@ -40,6 +30,8 @@ import { AppCacheModule } from '@modules/cache/cache.module';
     EventEmitterModule.forRoot({ global: true }),
     AuthModule,
     AccountModule,
+    TcpConnectionsModule,
+    KafkaConnectionsModule,
   ],
 })
 export class AppModule {}
