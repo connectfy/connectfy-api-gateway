@@ -165,4 +165,14 @@ export class UserController {
 
     return res;
   }
+
+  @Post('check-unique')
+  async checkUnique(@Body() data) {
+    return await sendWithContext({
+      client: this.service,
+      endpoint: 'user/check-unique',
+      payload: data,
+      cls: this.cls,
+    });
+  }
 }
