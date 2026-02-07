@@ -4,3 +4,10 @@ export enum CLS_KEYS {
   ACCOUNT = 'account',
   SETTINGS = 'settings',
 }
+
+export enum LANGUAGE {
+  EN = 'en',
+  AZ = 'az',
+  RU = 'ru',
+  TR = 'tr',
+}

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  HttpStatus,
   Inject,
   Post,
   Req,
@@ -20,8 +21,10 @@ import {
   EXPIRE_DATES,
   MICROSERVICE_NAMES,
 } from '@/src/common/constants/constants';
-import { CLS_KEYS } from '@common/enums/enums';
+import { CLS_KEYS, LANGUAGE } from '@common/enums/enums';
 import { AppCacheService } from '@modules/cache/cache.service';
+import { BaseException } from '@/src/common/constants/custom.exception';
+import { ExceptionMessages, ExceptionTypes } from '@/src/common/constants/exception.constants';
 
 @Controller('auth')
 export class AuthController {
@@ -96,6 +99,30 @@ export class AuthController {
     }
 
     return response.status(201).json({ access_token: res.access_token });
+  }
+
+  @Post('signup/verify/resend')
+  async resendSignupVerify(@Body() data, @Session() session: Record<string, any>) {
+    const payload = session.unverifiedUser
+
+    if (!payload)
+      throw new BaseException(
+        ExceptionMessages.NOT_FOUND_MESSAGE,
+        HttpStatus.NOT_FOUND,
+        ExceptionTypes.NOT_FOUND,
+        { navigate: true },
+      );
+
+    const res = await sendWithContext({
+      client: this.service,
+      endpoint: 'auth/verify-signup/resend',
+      payload,
+      cls: this.cls,
+    });
+
+    session.verifyCode = res.verifyCode;
+
+    return { statusCode: 200 };
   }
 
   @Post('login')
