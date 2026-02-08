@@ -27,16 +27,26 @@ export class NotificationSettingsController {
     private readonly cacheService: AppCacheService,
   ) {}
 
-  @Post('findOne')
-  @UseGuards(AuthGuard, SafeQueryGuard)
-  async findOne(@Body() data) {
+  @Post('get')
+  @UseGuards(AuthGuard)
+  async get() {
     return await sendWithContext({
       client: this.service,
-      endpoint: 'notification-settings/findOne',
-      payload: data,
+      endpoint: 'notification-settings/get',
       cls: this.cls,
     });
   }
+
+  // @Post('findOne')
+  // @UseGuards(AuthGuard, SafeQueryGuard)
+  // async findOne(@Body() data) {
+  //   return await sendWithContext({
+  //     client: this.service,
+  //     endpoint: 'notification-settings/findOne',
+  //     payload: data,
+  //     cls: this.cls,
+  //   });
+  // }
 
   @Patch('update')
   @UseGuards(AuthGuard)
