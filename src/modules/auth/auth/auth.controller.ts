@@ -24,7 +24,10 @@ import {
 import { CLS_KEYS, LANGUAGE } from '@common/enums/enums';
 import { AppCacheService } from '@modules/cache/cache.service';
 import { BaseException } from '@/src/common/constants/custom.exception';
-import { ExceptionMessages, ExceptionTypes } from '@/src/common/constants/exception.constants';
+import {
+  ExceptionMessages,
+  ExceptionTypes,
+} from '@/src/common/constants/exception.constants';
 
 @Controller('auth')
 export class AuthController {
@@ -102,8 +105,11 @@ export class AuthController {
   }
 
   @Post('signup/verify/resend')
-  async resendSignupVerify(@Body() data, @Session() session: Record<string, any>) {
-    const payload = session.unverifiedUser
+  async resendSignupVerify(
+    @Body() data,
+    @Session() session: Record<string, any>,
+  ) {
+    const payload = session.unverifiedUser;
 
     if (!payload)
       throw new BaseException(

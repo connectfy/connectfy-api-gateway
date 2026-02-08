@@ -45,7 +45,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     // 2. If it's an object from CRM service via RPC (Kafka/TCP)
     else if (typeof exception === 'object' && exception !== null) {
       status = exception?.statusCode || status;
-      message = exception?.message || message;
+      message = exception?.response?.message || exception?.message || message;
       errorType = exception?.error || errorType;
       additional = exception?.additional || null;
     }

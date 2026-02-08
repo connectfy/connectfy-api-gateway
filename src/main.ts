@@ -15,7 +15,7 @@ async function bootstrap() {
   const SESSION_SECRET_KEY = String(process.env.SESSION_SECRET_KEY);
 
   // Prefix
-  app.setGlobalPrefix('/api');
+  app.setGlobalPrefix('/api/v1');
 
   // Helmet
   app.use(helmet());
