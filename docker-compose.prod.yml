@@ -8,10 +8,10 @@ services:
       context: .
       dockerfile: Dockerfile.prod
     ports:
-      - "3000:3000"
+      - '3000:3000'
     networks:
       - connectfy-api-gateway-network
-      - connectfy_kafka_network
+      - connectfy-kafka-network
       - connectfy-auth-network
       # - main-network
       # - permissions-network
@@ -21,12 +21,11 @@ services:
     restart: always
     env_file:
       - .env.production
-    
 
 networks:
   connectfy-api-gateway-network:
     external: true
-  connectfy_kafka_network:
+  connectfy-kafka-network:
     external: true
   connectfy-auth-network:
     external: true

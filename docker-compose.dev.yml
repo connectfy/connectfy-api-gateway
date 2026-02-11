@@ -10,12 +10,12 @@ services:
     volumes:
       - .:/usr/src/app
     ports:
-      - "3000:3000"
+      - '3000:3000'
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - 'host.docker.internal:host-gateway'
     networks:
       - connectfy-api-gateway-network
-      - connectfy_kafka_network
+      - connectfy-kafka-network
       - connectfy-auth-network
     environment:
       - NODE_ENV=development
@@ -30,7 +30,7 @@ services:
 networks:
   connectfy-api-gateway-network:
     external: true
-  connectfy_kafka_network:
+  connectfy-kafka-network:
     external: true
   connectfy-auth-network:
     external: true
