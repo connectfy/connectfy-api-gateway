@@ -19,7 +19,6 @@ import { sendWithContext } from '@common/helpers/microservice-request.helper';
 import {
   ENV,
   CACHE_KEYS,
-  EXPIRE_DATES,
   MICROSERVICE_NAMES,
 } from '@common/constants/constants';
 import { CLS_KEYS } from '@common/enums/enums';
@@ -59,11 +58,19 @@ export class AuthGuard implements CanActivate {
 
     let payload: any = null;
 
-    // VERIFY ACCESS TOKEN
-    payload = this.jwtService.verify(accessToken, {
-      secret: accessSecret,
-      ignoreExpiration: true,
-    });
+    try {
+      payload = this.jwtService.verify(accessToken, {
+        secret: accessSecret,
+        ignoreExpiration: true,
+      });
+    } catch (error) {
+      throw new BaseException(
+        ExceptionMessages.UNAUTHORIZED_MESSAGE,
+        HttpStatus.UNAUTHORIZED,
+        ExceptionTypes.UNAUTHORIZED,
+        { navigate: true },
+      );
+    }
 
     const isExpired = Date.now() >= payload.exp * 1000;
 
