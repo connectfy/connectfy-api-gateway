@@ -6,7 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { BaseException } from '../common/constants/custom.exception';
+import { BaseException } from 'connectfy-shared';
 
 @Injectable()
 export class SafeQueryGuard implements CanActivate {

@@ -1,8 +1,9 @@
 import {
   CACHE_KEYS,
   MICROSERVICE_NAMES,
-} from '@/src/common/constants/constants';
-import { sendWithContext } from '@/src/common/helpers/microservice-request.helper';
+  CLS_KEYS,
+  sendWithContext,
+} from 'connectfy-shared';
 import { AuthGuard } from '@guards/auth.guard';
 import {
   Body,
@@ -14,7 +15,6 @@ import {
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { ClsService } from 'nestjs-cls';
-import { CLS_KEYS } from '@common/enums/enums';
 import { AppCacheService } from '@modules/cache/cache.service';
 
 @Controller('user')

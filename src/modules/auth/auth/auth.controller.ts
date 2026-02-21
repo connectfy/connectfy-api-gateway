@@ -13,21 +13,19 @@ import { ConfigService } from '@nestjs/config';
 import { CookieOptions, Request, Response } from 'express';
 import { AuthGuard } from '@guards/auth.guard';
 import { ClientProxy } from '@nestjs/microservices';
-import { sendWithContext } from '@/src/common/helpers/microservice-request.helper';
 import { ClsService } from 'nestjs-cls';
 import {
   CACHE_KEYS,
   ENV,
   EXPIRE_DATES,
   MICROSERVICE_NAMES,
-} from '@/src/common/constants/constants';
-import { CLS_KEYS, LANGUAGE } from '@common/enums/enums';
-import { AppCacheService } from '@modules/cache/cache.service';
-import { BaseException } from '@/src/common/constants/custom.exception';
-import {
+  sendWithContext,
+  BaseException,
   ExceptionMessages,
   ExceptionTypes,
-} from '@/src/common/constants/exception.constants';
+  CLS_KEYS,
+} from 'connectfy-shared';
+import { AppCacheService } from '@modules/cache/cache.service';
 
 @Controller('auth')
 export class AuthController {
