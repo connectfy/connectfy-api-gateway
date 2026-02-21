@@ -32,7 +32,7 @@ export class UserController {
     const reqUser = await this.cls.get(CLS_KEYS.USER);
 
     if (reqUser) {
-      const cacheKey = CACHE_KEYS.USER(reqUser.user._id);
+      const cacheKey = CACHE_KEYS.USER(reqUser._id);
       const cachedUser = await this.cacheService.get(cacheKey);
 
       if (cachedUser) {

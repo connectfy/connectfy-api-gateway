@@ -235,7 +235,6 @@ export class AuthController {
     });
   }
 
-  @UseGuards(AuthGuard)
   @Post('refresh')
   async refreshToken(@Body() data, @Req() request, @Res() response: Response) {
     const finalData: Record<string, any> = {};
@@ -272,12 +271,12 @@ export class AuthController {
     const res = await sendWithContext({
       client: this.service,
       endpoint: 'auth/logout',
-      payload: { ...data, userId: reqUser?.user?._id },
+      payload: { ...data, userId: reqUser?._id },
       cls: this.cls,
     });
 
     if (res.statusCode === 200) {
-      const userId = reqUser?.user?._id;
+      const userId = reqUser?._id;
       const cacheKey = CACHE_KEYS.USER(userId);
       if (userId) await this.cacheService.remove(cacheKey);
 
@@ -298,7 +297,7 @@ export class AuthController {
   @Post('delete-account')
   async deleteAccount(@Body() data, @Res() response: Response) {
     const user = await this.cls.get(CLS_KEYS.USER);
-    const userId = user?.user?._id;
+    const userId = user?._id;
 
     const res = await sendWithContext({
       client: this.service,
@@ -386,7 +385,7 @@ export class AuthController {
 
     if (res.statusCode === 200) {
       const user = await this.cls.get(CLS_KEYS.USER);
-      const userId = user?.user?._id;
+      const userId = user?._id;
 
       const cacheKey = CACHE_KEYS.USER(userId);
       await this.cacheService.remove(cacheKey);

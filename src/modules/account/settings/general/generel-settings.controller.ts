@@ -16,6 +16,7 @@ import { ClientProxy } from '@nestjs/microservices';
 import { ClsService } from 'nestjs-cls';
 import { AppCacheService } from '@modules/cache/cache.service';
 
+@UseGuards(AuthGuard)
 @Controller('account/settings/general-settings')
 export class GeneralSettingsController {
   constructor(
@@ -27,7 +28,6 @@ export class GeneralSettingsController {
   ) {}
 
   @Post('get')
-  @UseGuards(AuthGuard)
   async get() {
     return await sendWithContext({
       client: this.service,
@@ -48,7 +48,6 @@ export class GeneralSettingsController {
   // }
 
   @Patch('update')
-  @UseGuards(AuthGuard)
   async update(@Body() data) {
     const res = await sendWithContext({
       client: this.service,
@@ -80,7 +79,6 @@ export class GeneralSettingsController {
   }
 
   @Patch('reset')
-  @UseGuards(AuthGuard)
   async reset() {
     const res = await sendWithContext({
       client: this.service,
