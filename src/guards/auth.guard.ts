@@ -16,7 +16,6 @@ import {
   CACHE_KEYS,
   MICROSERVICE_NAMES,
   ExceptionMessages,
-  ExceptionTypes,
   BaseException,
   sendWithContext,
 } from 'connectfy-shared';
@@ -43,7 +42,6 @@ export class AuthGuard implements CanActivate {
       throw new BaseException(
         ExceptionMessages.UNAUTHORIZED_MESSAGE,
         HttpStatus.UNAUTHORIZED,
-        ExceptionTypes.UNAUTHORIZED,
         { navigate: true },
       );
     }
@@ -62,14 +60,12 @@ export class AuthGuard implements CanActivate {
         throw new BaseException(
           ExceptionMessages.TOKEN_EXPIRED,
           HttpStatus.UNAUTHORIZED,
-          ExceptionTypes.UNAUTHORIZED,
         );
       }
       // 4. If Invalid/Malformed -> Force Login
       throw new BaseException(
         ExceptionMessages.UNAUTHORIZED_MESSAGE,
         HttpStatus.UNAUTHORIZED,
-        ExceptionTypes.UNAUTHORIZED,
         { navigate: true },
       );
     }
@@ -93,7 +89,6 @@ export class AuthGuard implements CanActivate {
         throw new BaseException(
           ExceptionMessages.UNAUTHORIZED_MESSAGE,
           HttpStatus.UNAUTHORIZED,
-          ExceptionTypes.UNAUTHORIZED,
           { navigate: true },
         );
       }

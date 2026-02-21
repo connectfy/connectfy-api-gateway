@@ -22,7 +22,6 @@ import {
   sendWithContext,
   BaseException,
   ExceptionMessages,
-  ExceptionTypes,
   CLS_KEYS,
 } from 'connectfy-shared';
 import { AppCacheService } from '@modules/cache/cache.service';
@@ -113,7 +112,6 @@ export class AuthController {
       throw new BaseException(
         ExceptionMessages.NOT_FOUND_MESSAGE,
         HttpStatus.NOT_FOUND,
-        ExceptionTypes.NOT_FOUND,
         { navigate: true },
       );
 

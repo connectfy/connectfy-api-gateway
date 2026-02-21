@@ -6,7 +6,7 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
-import { ExceptionMessages, ExceptionTypes, LANGUAGE } from 'connectfy-shared';
+import { ExceptionMessages, LANGUAGE } from 'connectfy-shared';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -20,7 +20,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = ExceptionMessages.INTERNAL_SERVER_ERROR_MESSAGE(language);
-    let errorType = ExceptionTypes.INTERNAL_SERVER_ERROR;
     let additional = null;
 
     // Log for debugging
@@ -35,7 +34,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
       if (typeof responseBody === 'object' && responseBody !== null) {
         message = (responseBody as any).message || message;
-        errorType = (responseBody as any).error || errorType;
         additional = (responseBody as any).additional || null;
       } else message = responseBody as string;
     }
@@ -44,7 +42,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
     else if (typeof exception === 'object' && exception !== null) {
       status = exception?.statusCode || status;
       message = exception?.response?.message || exception?.message || message;
-      errorType = exception?.error || errorType;
       additional = exception?.additional || null;
     }
 
@@ -54,7 +51,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const responsePayload = {
       status: 'error',
       message,
-      error: errorType,
       timestamp: new Date().toISOString(),
       path: request?.url,
     };

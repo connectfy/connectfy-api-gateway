@@ -10,7 +10,7 @@ import { ClsService } from 'nestjs-cls';
 
 @UseGuards(AuthGuard)
 @Controller('account/profile')
-export class AccountController {
+export class ProfileController {
   constructor(
     @Inject(MICROSERVICE_NAMES.ACCOUNT.TCP)
     private readonly service: ClientProxy,
@@ -18,12 +18,12 @@ export class AccountController {
   ) {}
 
   @Post('get')
-  async getAccount() {
+  async getProfile() {
     const user = await this.cls.get(CLS_KEYS.USER);
 
     return await sendWithContext({
       client: this.service,
-      endpoint: 'account/findOne',
+      endpoint: 'profile/findOne',
       payload: {
         query: {
           userId: user._id,
