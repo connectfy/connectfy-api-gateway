@@ -150,9 +150,13 @@ export class AuthController {
       cls: this.cls,
     });
 
-    if (res.refresh_token) this.setRefreshCookie(res.refresh_token, response);
+    if (res.refresh_token) {
+      this.setRefreshCookie(res.refresh_token, response);
+    }
 
-    return response.status(201).json({ access_token: res.access_token });
+    const { refresh_token, ...rest } = res;
+
+    return response.status(201).json(rest);
   }
 
   @Post('google/login')
@@ -178,9 +182,13 @@ export class AuthController {
       cls: this.cls,
     });
 
-    if (res.refresh_token) this.setRefreshCookie(res.refresh_token, response);
+    if (res.refresh_token) {
+      this.setRefreshCookie(res.refresh_token, response);
+    }
 
-    return response.status(201).json({ access_token: res.access_token });
+    const { refresh_token, ...rest } = res;
+
+    return response.status(201).json(rest);
   }
 
   @Post('google/signup')
@@ -206,7 +214,9 @@ export class AuthController {
       cls: this.cls,
     });
 
-    if (res.refresh_token) this.setRefreshCookie(res.refresh_token, response);
+    if (res.refresh_token) {
+      this.setRefreshCookie(res.refresh_token, response);
+    }
 
     return response.status(201).json({ access_token: res.access_token });
   }
@@ -364,7 +374,9 @@ export class AuthController {
       cls: this.cls,
     });
 
-    if (res.refresh_token) this.setRefreshCookie(res.refresh_token, response);
+    if (res.refresh_token) {
+      this.setRefreshCookie(res.refresh_token, response);
+    }
 
     return response.status(201).json({ access_token: res.access_token });
   }
