@@ -4,7 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import * as session from 'express-session';
 import * as cookieParser from 'cookie-parser';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
-import { AllExceptionsFilter } from './exception-filters/all.filter';
+import { AllExceptionsFilter } from './common/exception-filters/all.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

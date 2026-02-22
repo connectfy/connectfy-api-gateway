@@ -25,6 +25,7 @@ import {
   CLS_KEYS,
 } from 'connectfy-shared';
 import { AppCacheService } from '@modules/cache/cache.service';
+import { extractRequestData } from '@/src/common/functions/request';
 
 @Controller('auth')
 export class AuthController {
@@ -74,15 +75,7 @@ export class AuthController {
   ) {
     data.unverifiedUser = session.unverifiedUser;
     data.code = session.verifyCode;
-    data.requestData = {
-      headers: {
-        'user-agent': request.headers['user-agent'],
-        'x-forwarded-for': request.headers['x-forwarded-for'],
-        'x-real-ip': request.headers['x-real-ip'],
-        'cf-connecting-ip': request.headers['cf-connecting-ip'],
-      },
-      ip: request.socket.remoteAddress,
-    };
+    data.requestData = extractRequestData(request);
 
     const res = await sendWithContext({
       client: this.service,
@@ -133,15 +126,7 @@ export class AuthController {
     @Req() request: Request,
     @Res() response: Response,
   ) {
-    data.requestData = {
-      headers: {
-        'user-agent': request.headers['user-agent'],
-        'x-forwarded-for': request.headers['x-forwarded-for'],
-        'x-real-ip': request.headers['x-real-ip'],
-        'cf-connecting-ip': request.headers['cf-connecting-ip'],
-      },
-      ip: request.socket.remoteAddress,
-    };
+    data.requestData = extractRequestData(request);
 
     const res = await sendWithContext({
       client: this.service,
@@ -165,15 +150,7 @@ export class AuthController {
     @Req() request: Request,
     @Res() response: Response,
   ) {
-    data.requestData = {
-      headers: {
-        'user-agent': request.headers['user-agent'],
-        'x-forwarded-for': request.headers['x-forwarded-for'],
-        'x-real-ip': request.headers['x-real-ip'],
-        'cf-connecting-ip': request.headers['cf-connecting-ip'],
-      },
-      ip: request.socket.remoteAddress,
-    };
+    data.requestData = extractRequestData(request);
 
     const res = await sendWithContext({
       client: this.service,
@@ -197,15 +174,7 @@ export class AuthController {
     @Req() request: Request,
     @Res() response: Response,
   ) {
-    data.requestData = {
-      headers: {
-        'user-agent': request.headers['user-agent'],
-        'x-forwarded-for': request.headers['x-forwarded-for'],
-        'x-real-ip': request.headers['x-real-ip'],
-        'cf-connecting-ip': request.headers['cf-connecting-ip'],
-      },
-      ip: request.socket.remoteAddress,
-    };
+    data.requestData = extractRequestData(request);
 
     const res = await sendWithContext({
       client: this.service,
@@ -247,15 +216,7 @@ export class AuthController {
 
     finalData.deviceId = data.deviceId;
     finalData.refresh_token = request.cookies?.refresh_token;
-    finalData.requestData = {
-      headers: {
-        'user-agent': request.headers['user-agent'],
-        'x-forwarded-for': request.headers['x-forwarded-for'],
-        'x-real-ip': request.headers['x-real-ip'],
-        'cf-connecting-ip': request.headers['cf-connecting-ip'],
-      },
-      ip: request.socket.remoteAddress,
-    };
+    finalData.requestData = extractRequestData(request);
 
     const res = await sendWithContext({
       client: this.service,
