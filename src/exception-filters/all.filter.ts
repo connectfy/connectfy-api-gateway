@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
+import { RpcException } from '@nestjs/microservices';
 import { ExceptionMessages, LANGUAGE } from 'connectfy-shared';
 
 @Catch()
@@ -38,7 +39,19 @@ export class AllExceptionsFilter implements ExceptionFilter {
       } else message = responseBody as string;
     }
 
-    // 2. If it's an object from CRM service via RPC (Kafka/TCP)
+    // 2. If it's an RpcException (e.g. BaseException thrown from guards)
+    else if (exception instanceof RpcException) {
+      const rpcError = exception.getError();
+      if (typeof rpcError === 'object' && rpcError !== null) {
+        status = (rpcError as any).statusCode || status;
+        message = (rpcError as any).message || message;
+        additional = (rpcError as any).additional || null;
+      } else {
+        message = rpcError as string;
+      }
+    }
+
+    // 3. If it's an object from CRM service via RPC (Kafka/TCP)
     else if (typeof exception === 'object' && exception !== null) {
       status = exception?.statusCode || status;
       message = exception?.response?.message || exception?.message || message;
