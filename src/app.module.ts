@@ -1,13 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { AuthModule } from '@modules/auth/auth.module';
-import { AccountModule } from '@modules/account/account.module';
 import { ClsModule } from 'nestjs-cls';
 import { JwtModule } from '@nestjs/jwt';
 import { AppCacheModule } from '@modules/cache/cache.module';
-import { TcpConnectionsModule } from '@/src/services/app-connections/tcp-connections.module';
-import { KafkaConnectionsModule } from '@/src/services/app-connections/kafka-connections.module';
+import { AppSettingsModule } from './app-settings/app-settings.module';
+import { ModulesModule } from './modules/modules.module';
 
 @Module({
   imports: [
@@ -28,10 +26,11 @@ import { KafkaConnectionsModule } from '@/src/services/app-connections/kafka-con
     AppCacheModule,
     JwtModule.register({ global: true }),
     EventEmitterModule.forRoot({ global: true }),
-    AuthModule,
-    AccountModule,
-    TcpConnectionsModule,
-    KafkaConnectionsModule,
+
+    // /src/app-settings
+    AppSettingsModule,
+    // /src/modules
+    ModulesModule,
   ],
 })
 export class AppModule {}

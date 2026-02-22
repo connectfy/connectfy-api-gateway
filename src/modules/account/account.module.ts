@@ -1,15 +1,8 @@
 import { Module } from '@nestjs/common';
-import { GeneralSettingsModule } from './settings/general/generel-settings.module';
-import { NotificationSettingsModule } from './settings/notification/notification-settings.module';
-import { PrivacySettingsModule } from './settings/privacy/privacy-settings.module';
 import { ProfileModule } from './profile/profile.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
-  imports: [
-    ProfileModule,
-    GeneralSettingsModule,
-    NotificationSettingsModule,
-    PrivacySettingsModule,
-  ],
+  imports: [ProfileModule, SettingsModule],
 })
 export class AccountModule {}
