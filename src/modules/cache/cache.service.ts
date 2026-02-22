@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Cache } from 'cache-manager';
-import { EXPIRE_DATES } from '@common/constants/constants';
+import { EXPIRE_DATES } from 'connectfy-shared';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @Injectable()

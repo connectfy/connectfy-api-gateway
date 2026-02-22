@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { MICROSERVICE_NAMES } from '@common/constants/constants';
+import { MICROSERVICE_NAMES } from 'connectfy-shared';
 
 @Module({
   imports: [
