@@ -68,7 +68,7 @@ export class UserController {
 
         const updatedUser = {
           ...cachedUser,
-          user: { ...cachedUser.user, username: res.username },
+          username: res.username,
         };
         await this.cacheService.set({
           key: cacheKey,
@@ -111,7 +111,7 @@ export class UserController {
 
         const updatedUser = {
           ...cachedUser,
-          user: { ...cachedUser.user, email: res.email },
+          email: res.email,
         };
         await this.cacheService.set({
           key: cacheKey,
@@ -154,7 +154,7 @@ export class UserController {
 
         const updatedUser = {
           ...cachedUser,
-          user: { ...cachedUser.user, phoneNumber: res.phoneNumber },
+          phoneNumber: res.phoneNumber,
         };
         await this.cacheService.set({
           key: cacheKey,
@@ -162,7 +162,6 @@ export class UserController {
         });
       }
     }
-
     return res;
   }
 
