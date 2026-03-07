@@ -2,34 +2,28 @@ import {
   CanActivate,
   ExecutionContext,
   HttpStatus,
-  Inject,
   Injectable,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
 import { ClsService } from 'nestjs-cls';
-import { ClientProxy } from '@nestjs/microservices';
 import {
-  ENV,
   CLS_KEYS,
   CACHE_KEYS,
-  MICROSERVICE_NAMES,
   ExceptionMessages,
   BaseException,
-  sendWithContext,
 } from 'connectfy-shared';
 import { AppCacheService } from '@modules/cache/cache.service';
+import { ENVIRONMENT_VARIABLES } from '../common/constants/environment-variables';
+import { TcpConnectionService } from '../app-settings/tcp-connections/tcp-connection.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
-    @Inject(MICROSERVICE_NAMES.AUTH.TCP)
-    private readonly authClient: ClientProxy,
     private readonly cacheService: AppCacheService,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
     private readonly cls: ClsService,
+    private readonly tcpConnectionService: TcpConnectionService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -46,9 +40,7 @@ export class AuthGuard implements CanActivate {
       );
     }
 
-    const accessSecret = this.configService.get<string>(
-      ENV.AUTH.JWT.ACCESS.SECRET,
-    );
+    const accessSecret = ENVIRONMENT_VARIABLES.JWT_ACCESS_SECRET;
     let payload: any;
 
     try {
@@ -75,14 +67,12 @@ export class AuthGuard implements CanActivate {
     let user = await this.cacheService.get(cacheKey);
 
     if (!user) {
-      const result = await sendWithContext({
-        client: this.authClient,
+      const result = await this.tcpConnectionService.auth({
         endpoint: 'auth/refresh-token/verify-token',
         payload: {
           access_token: accessToken,
           refresh_token: refreshToken,
         },
-        cls: this.cls,
       });
 
       if (!result || !result.user) {

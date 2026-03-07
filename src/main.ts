@@ -5,14 +5,15 @@ import * as session from 'express-session';
 import * as cookieParser from 'cookie-parser';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { AllExceptionsFilter } from './common/exception-filters/all.filter';
+import { ENVIRONMENT_VARIABLES } from './common/constants/environment-variables';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const PORT = Number(process.env.PORT);
-  const NODE_ENV = String(process.env.NODE_ENV);
-  const CLIENT_URL = String(process.env.CLIENT_URL);
-  const SESSION_SECRET_KEY = String(process.env.SESSION_SECRET_KEY);
+  const PORT = Number(ENVIRONMENT_VARIABLES.PORT);
+  const NODE_ENV = String(ENVIRONMENT_VARIABLES.NODE_ENV);
+  const CLIENT_URL = String(ENVIRONMENT_VARIABLES.CLIENT_URL);
+  const SESSION_SECRET_KEY = String(ENVIRONMENT_VARIABLES.SESSION_SECRET_KEY);
 
   // Prefix
   app.setGlobalPrefix('/api/v1');

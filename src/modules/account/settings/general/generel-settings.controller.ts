@@ -1,38 +1,21 @@
-import {
-  CACHE_KEYS,
-  MICROSERVICE_NAMES,
-  sendWithContext,
-} from 'connectfy-shared';
+import { CACHE_KEYS } from 'connectfy-shared';
 import { AuthGuard } from '@/src/guards/auth.guard';
-import {
-  Body,
-  Controller,
-  Inject,
-  Patch,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
-import { ClsService } from 'nestjs-cls';
+import { Body, Controller, Patch, Post, UseGuards } from '@nestjs/common';
 import { AppCacheService } from '@modules/cache/cache.service';
+import { TcpConnectionService } from '@/src/app-settings/tcp-connections/tcp-connection.service';
 
 @UseGuards(AuthGuard)
 @Controller('account/settings/general-settings')
 export class GeneralSettingsController {
   constructor(
-    @Inject(MICROSERVICE_NAMES.ACCOUNT.TCP)
-    private readonly service: ClientProxy,
-
-    private readonly cls: ClsService,
+    private readonly tcpConnectionService: TcpConnectionService,
     private readonly cacheService: AppCacheService,
   ) {}
 
   @Post('get')
   async get() {
-    return await sendWithContext({
-      client: this.service,
+    return await this.tcpConnectionService.account({
       endpoint: 'general-settings/get',
-      cls: this.cls,
     });
   }
 
@@ -49,11 +32,9 @@ export class GeneralSettingsController {
 
   @Patch('update')
   async update(@Body() data) {
-    const res = await sendWithContext({
-      client: this.service,
+    const res = await this.tcpConnectionService.account({
       endpoint: 'general-settings/update',
       payload: data,
-      cls: this.cls,
     });
 
     if (res._id) {
@@ -80,10 +61,8 @@ export class GeneralSettingsController {
 
   @Patch('reset')
   async reset() {
-    const res = await sendWithContext({
-      client: this.service,
+    const res = await this.tcpConnectionService.account({
       endpoint: 'general-settings/reset',
-      cls: this.cls,
     });
 
     if (res.generalSettings) {

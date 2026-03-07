@@ -1,27 +1,14 @@
-import {
-  CACHE_KEYS,
-  MICROSERVICE_NAMES,
-  CLS_KEYS,
-  sendWithContext,
-} from 'connectfy-shared';
+import { CACHE_KEYS, CLS_KEYS } from 'connectfy-shared';
 import { AuthGuard } from '@guards/auth.guard';
-import {
-  Body,
-  Controller,
-  Inject,
-  Patch,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
+import { Body, Controller, Patch, Post, UseGuards } from '@nestjs/common';
 import { ClsService } from 'nestjs-cls';
 import { AppCacheService } from '@modules/cache/cache.service';
+import { TcpConnectionService } from '@/src/app-settings/tcp-connections/tcp-connection.service';
 
 @Controller('user')
 export class UserController {
   constructor(
-    @Inject(MICROSERVICE_NAMES.AUTH.TCP) private readonly service: ClientProxy,
-
+    private readonly tcpConnectionService: TcpConnectionService,
     private readonly cacheService: AppCacheService,
     private readonly cls: ClsService,
   ) {}
@@ -40,22 +27,18 @@ export class UserController {
       }
     }
 
-    return await sendWithContext({
-      client: this.service,
+    return await this.tcpConnectionService.auth({
       endpoint: 'user/me',
       payload: data,
-      cls: this.cls,
     });
   }
 
   @UseGuards(AuthGuard)
   @Patch('change-username')
   async changeUsername(@Body() data) {
-    const res = await sendWithContext({
-      client: this.service,
+    const res = await this.tcpConnectionService.auth({
       endpoint: 'user/change-username',
       payload: data,
-      cls: this.cls,
     });
 
     if (res._id) {
@@ -83,22 +66,18 @@ export class UserController {
   @UseGuards(AuthGuard)
   @Patch('change-email')
   async changeEmail(@Body() data) {
-    return await sendWithContext({
-      client: this.service,
+    return await this.tcpConnectionService.auth({
       endpoint: 'user/change-email',
       payload: data,
-      cls: this.cls,
     });
   }
 
   @UseGuards(AuthGuard)
   @Patch('change-email/verify')
   async verifyEmailChange(@Body() data) {
-    const res = await sendWithContext({
-      client: this.service,
+    const res = await this.tcpConnectionService.auth({
       endpoint: 'user/change-email/verify',
       payload: data,
-      cls: this.cls,
     });
 
     if (res._id) {
@@ -126,22 +105,18 @@ export class UserController {
   @UseGuards(AuthGuard)
   @Patch('change-password')
   async changePassword(@Body() data) {
-    return await sendWithContext({
-      client: this.service,
+    return await this.tcpConnectionService.auth({
       endpoint: 'user/change-password',
       payload: data,
-      cls: this.cls,
     });
   }
 
   @UseGuards(AuthGuard)
   @Patch('change-phone-number')
   async changePhoneNumber(@Body() data) {
-    const res = await sendWithContext({
-      client: this.service,
+    const res = await this.tcpConnectionService.auth({
       endpoint: 'user/change-phone-number',
       payload: data,
-      cls: this.cls,
     });
 
     if (res._id) {
@@ -167,11 +142,9 @@ export class UserController {
 
   @Post('check-unique')
   async checkUnique(@Body() data) {
-    return await sendWithContext({
-      client: this.service,
+    return await this.tcpConnectionService.auth({
       endpoint: 'user/check-unique',
       payload: data,
-      cls: this.cls,
     });
   }
 }

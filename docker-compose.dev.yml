@@ -3,27 +3,23 @@ version: '3.8'
 services:
   api-gateway:
     container_name: connectfy-api-gateway-dev
-    image: connectfy/connectfy-api-gateway-dev
     build:
       context: .
       dockerfile: Dockerfile.dev
+    image: connectfy/connectfy-api-gateway-dev
+    restart: unless-stopped
     volumes:
       - .:/usr/src/app
     ports:
-      - '3000:3000'
+      - "3000:3000"
     extra_hosts:
-      - 'host.docker.internal:host-gateway'
+      - "host.docker.internal:host-gateway"
     networks:
       - connectfy-api-gateway-network
       - connectfy-kafka-network
       - connectfy-auth-network
     environment:
-      - NODE_ENV=development
-    #   - CHOKIDAR_USEPOLLING=true
-    #   - CHOKIDAR_INTERVAL=1000
-    #   - WATCHPACK_POLLING=true
-    # command: npx nodemon --legacy-watch --watch src --ext ts,js,json --exec "npm run start:dev"
-    restart: unless-stopped
+      NODE_ENV: development
     env_file:
       - .env.development
 

@@ -1,12 +1,11 @@
 import { Global, Module } from '@nestjs/common';
-import { TcpConnectionsModule } from './tcp-connections/tcp-connections.module';
-import { KafkaConnectionsModule } from './kafka-connections/kafka-connections.module';
+import { TcpConnectionModule } from './tcp-connections/tcp-connection.module';
 
 @Global()
 @Module({
-  imports: [TcpConnectionsModule, KafkaConnectionsModule],
+  imports: [TcpConnectionModule],
   controllers: [],
   providers: [],
-  exports: [TcpConnectionsModule, KafkaConnectionsModule],
+  exports: [TcpConnectionModule],
 })
 export class AppSettingsModule {}

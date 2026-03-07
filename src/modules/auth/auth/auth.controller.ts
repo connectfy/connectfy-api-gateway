@@ -2,44 +2,37 @@ import {
   Body,
   Controller,
   HttpStatus,
-  Inject,
   Post,
   Req,
   Res,
   Session,
   UseGuards,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { CookieOptions, Request, Response } from 'express';
 import { AuthGuard } from '@guards/auth.guard';
-import { ClientProxy } from '@nestjs/microservices';
 import { ClsService } from 'nestjs-cls';
 import {
   CACHE_KEYS,
-  ENV,
   EXPIRE_DATES,
-  MICROSERVICE_NAMES,
-  sendWithContext,
   BaseException,
   ExceptionMessages,
   CLS_KEYS,
 } from 'connectfy-shared';
 import { AppCacheService } from '@modules/cache/cache.service';
 import { extractRequestData } from '@/src/common/functions/request';
+import { ENVIRONMENT_VARIABLES } from '@/src/common/constants/environment-variables';
+import { TcpConnectionService } from '@/src/app-settings/tcp-connections/tcp-connection.service';
 
 @Controller('auth')
 export class AuthController {
   constructor(
-    @Inject(MICROSERVICE_NAMES.AUTH.TCP) private readonly service: ClientProxy,
-
+    private readonly tcpConnectionService: TcpConnectionService,
     private readonly cacheService: AppCacheService,
-    private readonly config: ConfigService,
     private readonly cls: ClsService,
   ) {}
 
   private setRefreshCookie(token: string, res: Response): void {
-    const isProd =
-      this.config.get<string>(ENV.CORE.APP.NODE_ENV) === 'production';
+    const isProd = ENVIRONMENT_VARIABLES.NODE_ENV === 'production';
 
     const cookieOptions: CookieOptions = {
       maxAge: EXPIRE_DATES.TOKEN.ONE_MONTH,
@@ -53,11 +46,9 @@ export class AuthController {
 
   @Post('signup')
   async signup(@Body() data, @Session() session: Record<string, any>) {
-    const res = await sendWithContext({
-      client: this.service,
+    const res = await this.tcpConnectionService.auth({
       endpoint: 'auth/signup',
       payload: data,
-      cls: this.cls,
     });
 
     session.unverifiedUser = res.unverifiedUser;
@@ -77,11 +68,9 @@ export class AuthController {
     data.code = session.verifyCode;
     data.requestData = extractRequestData(request);
 
-    const res = await sendWithContext({
-      client: this.service,
+    const res = await this.tcpConnectionService.auth({
       endpoint: 'auth/verify-signup',
       payload: data,
-      cls: this.cls,
     });
 
     if (res.refresh_token) {
@@ -108,11 +97,9 @@ export class AuthController {
         { navigate: true },
       );
 
-    const res = await sendWithContext({
-      client: this.service,
+    const res = await this.tcpConnectionService.auth({
       endpoint: 'auth/verify-signup/resend',
       payload,
-      cls: this.cls,
     });
 
     session.verifyCode = res.verifyCode;
@@ -128,11 +115,9 @@ export class AuthController {
   ) {
     data.requestData = extractRequestData(request);
 
-    const res = await sendWithContext({
-      client: this.service,
+    const res = await this.tcpConnectionService.auth({
       endpoint: 'auth/login',
       payload: data,
-      cls: this.cls,
     });
 
     if (res.refresh_token) {
@@ -152,11 +137,9 @@ export class AuthController {
   ) {
     data.requestData = extractRequestData(request);
 
-    const res = await sendWithContext({
-      client: this.service,
+    const res = await this.tcpConnectionService.auth({
       endpoint: 'auth/google/login',
       payload: data,
-      cls: this.cls,
     });
 
     if (res.refresh_token) {
@@ -176,11 +159,9 @@ export class AuthController {
   ) {
     data.requestData = extractRequestData(request);
 
-    const res = await sendWithContext({
-      client: this.service,
+    const res = await this.tcpConnectionService.auth({
       endpoint: 'auth/google/signup',
       payload: data,
-      cls: this.cls,
     });
 
     if (res.refresh_token) {
@@ -192,21 +173,17 @@ export class AuthController {
 
   @Post('forgot-password')
   async forgotPassword(@Body() data) {
-    return sendWithContext({
-      client: this.service,
+    return this.tcpConnectionService.auth({
       endpoint: 'auth/forgot-password',
       payload: data,
-      cls: this.cls,
     });
   }
 
   @Post('reset-password')
   async resetPassword(@Body() data) {
-    return sendWithContext({
-      client: this.service,
+    return this.tcpConnectionService.auth({
       endpoint: 'auth/reset-password',
       payload: data,
-      cls: this.cls,
     });
   }
 
@@ -218,11 +195,9 @@ export class AuthController {
     finalData.refresh_token = request.cookies?.refresh_token;
     finalData.requestData = extractRequestData(request);
 
-    const res = await sendWithContext({
-      client: this.service,
+    const res = await this.tcpConnectionService.auth({
       endpoint: 'auth/refreshToken',
       payload: finalData,
-      cls: this.cls,
     });
 
     this.setRefreshCookie(res.refresh_token, response);
@@ -235,11 +210,9 @@ export class AuthController {
   async logout(@Body() data, @Res() response: Response) {
     const reqUser = await this.cls.get(CLS_KEYS.USER);
 
-    const res = await sendWithContext({
-      client: this.service,
+    const res = await this.tcpConnectionService.auth({
       endpoint: 'auth/logout',
       payload: { ...data, userId: reqUser?._id },
-      cls: this.cls,
     });
 
     if (res.statusCode === 200) {
@@ -249,11 +222,9 @@ export class AuthController {
 
       response.clearCookie('refresh_token', {
         httpOnly: true,
-        secure: this.config.get<string>(ENV.CORE.APP.NODE_ENV) === 'production',
+        secure: ENVIRONMENT_VARIABLES.NODE_ENV === 'production',
         sameSite:
-          this.config.get<string>(ENV.CORE.APP.NODE_ENV) === 'production'
-            ? 'none'
-            : 'lax',
+          ENVIRONMENT_VARIABLES.NODE_ENV === 'production' ? 'none' : 'lax',
       });
     }
 
@@ -266,11 +237,9 @@ export class AuthController {
     const user = await this.cls.get(CLS_KEYS.USER);
     const userId = user?._id;
 
-    const res = await sendWithContext({
-      client: this.service,
+    const res = await this.tcpConnectionService.auth({
       endpoint: 'auth/delete-account',
       payload: { ...data, userId },
-      cls: this.cls,
     });
 
     if (res.statusCode === 200) {
@@ -279,11 +248,9 @@ export class AuthController {
 
       response.clearCookie('refresh_token', {
         httpOnly: true,
-        secure: this.config.get<string>(ENV.CORE.APP.NODE_ENV) === 'production',
+        secure: ENVIRONMENT_VARIABLES.NODE_ENV === 'production',
         sameSite:
-          this.config.get<string>(ENV.CORE.APP.NODE_ENV) === 'production'
-            ? 'none'
-            : 'lax',
+          ENVIRONMENT_VARIABLES.NODE_ENV === 'production' ? 'none' : 'lax',
       });
     }
 
@@ -307,32 +274,26 @@ export class AuthController {
 
   @Post('is-valid-token')
   async isValidToken(@Body() data) {
-    return await sendWithContext({
-      client: this.service,
+    return await this.tcpConnectionService.auth({
       endpoint: 'auth/is-valid-token',
       payload: data,
-      cls: this.cls,
     });
   }
 
   @UseGuards(AuthGuard)
   @Post('authenticate-user')
   async authenticateUser(@Body() data) {
-    return await sendWithContext({
-      client: this.service,
+    return await this.tcpConnectionService.auth({
       endpoint: 'auth/authenticate-user',
       payload: data,
-      cls: this.cls,
     });
   }
 
   @Post('restore-account')
   async restoreAccount(@Body() data, @Res() response: Response) {
-    const res = await sendWithContext({
-      client: this.service,
+    const res = await this.tcpConnectionService.auth({
       endpoint: 'auth/restore-account',
       payload: data,
-      cls: this.cls,
     });
 
     if (res.refresh_token) {
@@ -345,11 +306,9 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Post('deactivate-account')
   async deactivateAccount(@Body() data) {
-    const res = await sendWithContext({
-      client: this.service,
+    const res = await this.tcpConnectionService.auth({
       endpoint: 'auth/deactivate-account',
       payload: data,
-      cls: this.cls,
     });
 
     if (res.statusCode === 200) {
