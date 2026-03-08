@@ -55,6 +55,12 @@ export class CacheService {
     await this.redis.del(key);
   }
 
+  async removeMany(keys: string[]) {
+    if (!keys || keys.length === 0) return 0;
+
+    return await this.redis.del(...keys);
+  }
+
   // getOrSet: if key exists return it, otherwise run loader(), set result and return it.
   // uses inflightRequests to dedupe concurrent loads.
   async getOrSet<T = any>(

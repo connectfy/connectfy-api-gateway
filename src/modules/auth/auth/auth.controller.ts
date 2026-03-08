@@ -96,8 +96,18 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Post('logout')
-  async logout(@Body() data, @Res() res: Response) {
-    const result = await this.service.logout(data);
+  async logout(@Body() data, @Req() req: Request, @Res() res: Response) {
+    const authHeader = req.headers.authorization;
+
+    let accessToken;
+    if (!authHeader) {
+      accessToken = '';
+    } else {
+      const [type, token] = authHeader.split(' ');
+      accessToken = type === 'Bearer' ? token : '';
+    }
+
+    const result = await this.service.logout(data, accessToken);
 
     res.clearCookie('refresh_token');
 

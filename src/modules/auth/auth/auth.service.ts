@@ -3,6 +3,7 @@ import { CACHE_KEYS, CLS_KEYS } from 'connectfy-shared';
 import { CacheService } from '@/src/app-settings/cache/cache.service';
 import { TcpConnectionService } from '@/src/app-settings/tcp-connections/tcp-connection.service';
 import { ClsService } from 'nestjs-cls';
+import { Request } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -75,18 +76,31 @@ export class AuthService {
     });
   }
 
-  async logout(data: any) {
+  async logout(data: any, accessToken: string) {
     const user = this.cls.get(CLS_KEYS.USER);
     const userId = user?._id;
 
     const res = await this.tcpConnectionService.auth({
       endpoint: 'auth/logout',
-      payload: { ...data, userId },
+      payload: data,
     });
 
     if (res?.statusCode === 200 && userId) {
-      const cacheKey = CACHE_KEYS.AUTH.USER(userId);
-      await this.cacheService.remove(cacheKey);
+      const userCacheKey = CACHE_KEYS.AUTH.USER(userId);
+      const profileCacheKey = CACHE_KEYS.ACCOUNT.PROFILE(userId);
+      const accessCacheKey = CACHE_KEYS.AUTH.ACCESS_TOKEN(accessToken);
+      const privacyCacheKey = CACHE_KEYS.ACCOUNT.SETTINGS.PRIVACY(userId);
+      const generalCacheKey = CACHE_KEYS.ACCOUNT.SETTINGS.GENERAL(userId);
+      const notificationCacheKey =
+        CACHE_KEYS.ACCOUNT.SETTINGS.NOTIFICATION(userId);
+      await this.cacheService.removeMany([
+        userCacheKey,
+        profileCacheKey,
+        accessCacheKey,
+        privacyCacheKey,
+        generalCacheKey,
+        notificationCacheKey,
+      ]);
     }
 
     return res;
