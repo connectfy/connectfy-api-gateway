@@ -23,6 +23,10 @@ export const ENVIRONMENT_VARIABLES = {
   BROKER1: process.env.BROKER1 || '',
   BROKER2: process.env.BROKER2 || '',
 
+  // Redis
+  REDIS_HOST: process.env.REDIS_HOST,
+  REDIS_PORT: Number(process.env.REDIS_PORT),
+
   // TCP
   AUTH_SERVICE_HOST: process.env.AUTH_SERVICE_HOST,
   AUTH_SERVICE_PORT: Number(process.env.AUTH_SERVICE_PORT),

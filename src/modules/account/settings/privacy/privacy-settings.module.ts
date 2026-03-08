@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
-import { AuthGuard } from '@/src/guards/auth.guard';
-import { ConfigModule } from '@nestjs/config';
 import { PrivacySettingsController } from './privacy-settings.controller';
+import { PrivacySettingsService } from './privacy-settings.service';
 
 @Module({
-  imports: [ConfigModule],
-  providers: [AuthGuard],
+  imports: [],
+  providers: [PrivacySettingsService],
   controllers: [PrivacySettingsController],
 })
 export class PrivacySettingsModule {}

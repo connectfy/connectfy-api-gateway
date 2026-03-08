@@ -1,50 +1,21 @@
-import { CACHE_KEYS } from 'connectfy-shared';
-import { AuthGuard } from '@/src/guards/auth.guard';
 import { Body, Controller, Patch, Post, UseGuards } from '@nestjs/common';
-import { AppCacheService } from '@modules/cache/cache.service';
-import { TcpConnectionService } from '@/src/app-settings/tcp-connections/tcp-connection.service';
+import { AuthGuard } from '@/src/guards/auth.guard';
+import { NotificationSettingsService } from './notification-settings.service';
 
 @UseGuards(AuthGuard)
 @Controller('account/settings/notification-settings')
 export class NotificationSettingsController {
   constructor(
-    private readonly tcpConnectionService: TcpConnectionService,
-    private readonly cacheService: AppCacheService,
+    private readonly notificationSettingsService: NotificationSettingsService,
   ) {}
 
   @Post('get')
   async get() {
-    return await this.tcpConnectionService.account({
-      endpoint: 'notification-settings/get',
-    });
+    return this.notificationSettingsService.get();
   }
 
   @Patch('update')
-  async update(@Body() data) {
-    const res = await this.tcpConnectionService.account({
-      endpoint: 'notification-settings/update',
-      payload: data,
-    });
-
-    if (res._id) {
-      const cacheKey = CACHE_KEYS.USER(res.userId);
-      const cachedUser: Record<string, any> | undefined =
-        await this.cacheService.get(cacheKey);
-
-      if (cachedUser) {
-        await this.cacheService.remove(cacheKey);
-        const updatedUser = {
-          ...cachedUser,
-          settings: { ...cachedUser.settings, notificationSettings: res },
-        };
-
-        await this.cacheService.set({
-          key: cacheKey,
-          data: updatedUser,
-        });
-      }
-    }
-
-    return res;
+  async update(@Body() data: any) {
+    return this.notificationSettingsService.update(data);
   }
 }

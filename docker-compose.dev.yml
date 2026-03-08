@@ -14,6 +14,7 @@ services:
     networks:
       - connectfy-core-network
       - connectfy-kafka-network
+      - connectfy-redis-network
     env_file:
       - .env.development
 
@@ -21,4 +22,6 @@ networks:
   connectfy-core-network:
     external: true
   connectfy-kafka-network:
+    external: true
+  connectfy-redis-network:
     external: true

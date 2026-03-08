@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
-import { AuthGuard } from '@/src/guards/auth.guard';
-import { ConfigModule } from '@nestjs/config';
 import { NotificationSettingsController } from './notification-settings.controller';
+import { NotificationSettingsService } from './notification-settings.service';
 
 @Module({
-  imports: [ConfigModule],
-  providers: [AuthGuard],
+  imports: [],
+  providers: [NotificationSettingsService],
   controllers: [NotificationSettingsController],
 })
 export class NotificationSettingsModule {}

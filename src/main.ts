@@ -6,6 +6,8 @@ import * as cookieParser from 'cookie-parser';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { AllExceptionsFilter } from './common/exception-filters/all.filter';
 import { ENVIRONMENT_VARIABLES } from './common/constants/environment-variables';
+import { REDIS_KEYS } from 'connectfy-shared';
+import { RedisStore } from 'connect-redis';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,6 +16,13 @@ async function bootstrap() {
   const NODE_ENV = String(ENVIRONMENT_VARIABLES.NODE_ENV);
   const CLIENT_URL = String(ENVIRONMENT_VARIABLES.CLIENT_URL);
   const SESSION_SECRET_KEY = String(ENVIRONMENT_VARIABLES.SESSION_SECRET_KEY);
+
+  const redisClient = app.get(REDIS_KEYS.REDIS_CLIENT);
+
+  const RedisSessionStore = new RedisStore({
+    client: redisClient as any,
+    prefix: 'sess:',
+  });
 
   // Prefix
   app.setGlobalPrefix('/api/v1');
@@ -36,6 +45,7 @@ async function bootstrap() {
   // Session
   app.use(
     session({
+      store: RedisSessionStore,
       name: 'n_sid',
       secret: SESSION_SECRET_KEY ?? 'session-secret-key',
       resave: false,

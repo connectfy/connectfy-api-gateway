@@ -3,7 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ClsModule } from 'nestjs-cls';
 import { JwtModule } from '@nestjs/jwt';
-import { AppCacheModule } from '@modules/cache/cache.module';
 import { AppSettingsModule } from './app-settings/app-settings.module';
 import { ModulesModule } from './modules/modules.module';
 
@@ -23,7 +22,6 @@ import { ModulesModule } from './modules/modules.module';
         // },
       },
     }),
-    AppCacheModule,
     JwtModule.register({ global: true }),
     EventEmitterModule.forRoot({ global: true }),
 

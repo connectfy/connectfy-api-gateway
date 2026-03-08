@@ -1,28 +1,14 @@
-import { TcpConnectionService } from '@/src/app-settings/tcp-connections/tcp-connection.service';
 import { AuthGuard } from '@/src/guards/auth.guard';
 import { Controller, Post, UseGuards } from '@nestjs/common';
-import { CLS_KEYS } from 'connectfy-shared';
-import { ClsService } from 'nestjs-cls';
+import { ProfileService } from './profile.service';
 
 @UseGuards(AuthGuard)
 @Controller('account/profile')
 export class ProfileController {
-  constructor(
-    private readonly tcpConnectionService: TcpConnectionService,
-    private readonly cls: ClsService,
-  ) {}
+  constructor(private readonly service: ProfileService) {}
 
   @Post('get')
   async getProfile() {
-    const user = await this.cls.get(CLS_KEYS.USER);
-
-    return await this.tcpConnectionService.account({
-      endpoint: 'profile/findOne',
-      payload: {
-        query: {
-          userId: user._id,
-        },
-      },
-    });
+    return await this.service.getProfile();
   }
 }
