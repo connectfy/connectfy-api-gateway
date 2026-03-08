@@ -20,8 +20,8 @@ import { TcpConnectionService } from '../app-settings/tcp-connections/tcp-connec
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  private readonly defaultUserTtl = EXPIRE_DATES.TOKEN.ONE_MINUTE * 15;
-  private readonly defaultTokenTtl = EXPIRE_DATES.TOKEN.ONE_MINUTE * 15;
+  private readonly defaultUserTtl = EXPIRE_DATES.TTL.ONE_MINUTE * 15;
+  private readonly defaultTokenTtl = EXPIRE_DATES.TTL.ONE_MINUTE * 15;
 
   constructor(
     private readonly cacheService: CacheService,
