@@ -6,27 +6,19 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    image: connectfy/connectfy-api-gateway-dev
     restart: unless-stopped
     volumes:
       - .:/usr/src/app
     ports:
       - "3000:3000"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     networks:
-      - connectfy-api-gateway-network
+      - connectfy-core-network
       - connectfy-kafka-network
-      - connectfy-auth-network
-    environment:
-      NODE_ENV: development
     env_file:
       - .env.development
 
 networks:
-  connectfy-api-gateway-network:
+  connectfy-core-network:
     external: true
   connectfy-kafka-network:
-    external: true
-  connectfy-auth-network:
     external: true
