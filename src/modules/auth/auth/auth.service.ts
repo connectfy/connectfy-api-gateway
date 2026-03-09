@@ -99,21 +99,8 @@ export class AuthService {
     });
 
     if (res?.statusCode === 200 && userId) {
-      const userCacheKey = CACHE_KEYS.AUTH.USER(userId);
-      const profileCacheKey = CACHE_KEYS.ACCOUNT.PROFILE(userId);
       const accessCacheKey = CACHE_KEYS.AUTH.ACCESS_TOKEN(accessToken);
-      const privacyCacheKey = CACHE_KEYS.ACCOUNT.SETTINGS.PRIVACY(userId);
-      const generalCacheKey = CACHE_KEYS.ACCOUNT.SETTINGS.GENERAL(userId);
-      const notificationCacheKey =
-        CACHE_KEYS.ACCOUNT.SETTINGS.NOTIFICATION(userId);
-      await this.cacheService.removeMany([
-        userCacheKey,
-        profileCacheKey,
-        accessCacheKey,
-        privacyCacheKey,
-        generalCacheKey,
-        notificationCacheKey,
-      ]);
+      await this.cacheService.remove(accessCacheKey);
     }
 
     return res;
