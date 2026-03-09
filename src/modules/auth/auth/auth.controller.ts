@@ -9,14 +9,18 @@ import {
 } from '@nestjs/common';
 import { Request, Response, CookieOptions } from 'express';
 import { AuthGuard } from '@guards/auth.guard';
-import { EXPIRE_DATES } from 'connectfy-shared';
+import { CLS_KEYS, EXPIRE_DATES } from 'connectfy-shared';
 import { ENVIRONMENT_VARIABLES } from '@/src/common/constants/environment-variables';
 import { extractRequestData } from '@/src/common/functions/request';
 import { AuthService } from './auth.service';
+import { ClsService } from 'nestjs-cls';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly service: AuthService) {}
+  constructor(
+    private readonly service: AuthService,
+    private readonly cls: ClsService,
+  ) {}
 
   private setRefreshCookie(token: string, res: Response) {
     const isProd = ENVIRONMENT_VARIABLES.NODE_ENV === 'production';
@@ -48,6 +52,8 @@ export class AuthController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
+    const deviceId = this.cls.get<string>(CLS_KEYS.DEVICE_ID);
+    data.deviceId = deviceId;
     data.unverifiedUser = session.unverifiedUser;
     data.code = session.verifyCode;
     data.requestData = extractRequestData(req);
@@ -64,9 +70,21 @@ export class AuthController {
     return res.status(201).json({ access_token: result.access_token });
   }
 
+  @Post('signup/verify/resend')
+  async resendSignupVerify(@Session() session: Record<string, any>) {
+    const payload = session.unverifiedUser;
+    const res = await this.service.resendSignupVerify(payload);
+
+    session.verifyCode = res.verifyCode;
+
+    return { statusCode: 200 };
+  }
+
   @Post('login')
   async login(@Body() data, @Req() req: Request, @Res() res: Response) {
+    const deviceId = this.cls.get<string>(CLS_KEYS.DEVICE_ID);
     data.requestData = extractRequestData(req);
+    data.deviceId = deviceId;
 
     const result = await this.service.login(data);
 
@@ -79,10 +97,52 @@ export class AuthController {
     return res.status(201).json(rest);
   }
 
+  @Post('google/login')
+  async googleAuthLogin(
+    @Body() data,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    const deviceId = this.cls.get<string>(CLS_KEYS.DEVICE_ID);
+    data.requestData = extractRequestData(request);
+    data.deviceId = deviceId;
+
+    const res = await this.service.googleLogin(data);
+
+    if (res.refresh_token) {
+      this.setRefreshCookie(res.refresh_token, response);
+    }
+
+    const { refresh_token, ...rest } = res;
+
+    return response.status(201).json(rest);
+  }
+
+  @Post('google/signup')
+  async googleAuthSignup(
+    @Body() data,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    const deviceId = this.cls.get<string>(CLS_KEYS.DEVICE_ID);
+    data.requestData = extractRequestData(request);
+    data.deviceId = deviceId;
+
+    const res = await this.service.googleSignup(data);
+
+    if (res.refresh_token) {
+      this.setRefreshCookie(res.refresh_token, response);
+    }
+
+    return response.status(201).json({ access_token: res.access_token });
+  }
+
   @Post('refresh')
-  async refresh(@Body() data, @Req() req: Request, @Res() res: Response) {
+  async refresh(@Req() req: Request, @Res() res: Response) {
+    const deviceId = this.cls.get<string>(CLS_KEYS.DEVICE_ID);
+
     const payload = {
-      deviceId: data.deviceId,
+      deviceId,
       refresh_token: req.cookies?.refresh_token,
       requestData: extractRequestData(req),
     };
@@ -96,7 +156,8 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Post('logout')
-  async logout(@Body() data, @Req() req: Request, @Res() res: Response) {
+  async logout(@Req() req: Request, @Res() res: Response) {
+    const deviceId = this.cls.get<string>(CLS_KEYS.DEVICE_ID);
     const authHeader = req.headers.authorization;
 
     let accessToken;
@@ -107,7 +168,7 @@ export class AuthController {
       accessToken = type === 'Bearer' ? token : '';
     }
 
-    const result = await this.service.logout(data, accessToken);
+    const result = await this.service.logout({ deviceId }, accessToken);
 
     res.clearCookie('refresh_token');
 

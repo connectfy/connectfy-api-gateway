@@ -1,9 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { CACHE_KEYS, CLS_KEYS } from 'connectfy-shared';
+import {
+  BaseException,
+  CACHE_KEYS,
+  CLS_KEYS,
+  ExceptionMessages,
+  HttpStatus,
+} from 'connectfy-shared';
 import { CacheService } from '@/src/app-settings/cache/cache.service';
 import { TcpConnectionService } from '@/src/app-settings/tcp-connections/tcp-connection.service';
 import { ClsService } from 'nestjs-cls';
-import { Request } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -28,6 +33,14 @@ export class AuthService {
   }
 
   async resendSignupVerify(payload: any) {
+    if (!payload) {
+      throw new BaseException(
+        ExceptionMessages.CONFLICT_MESSAGE,
+        HttpStatus.CONFLICT,
+        { navigate: true },
+      );
+    }
+
     return this.tcpConnectionService.auth({
       endpoint: 'auth/verify-signup/resend',
       payload,

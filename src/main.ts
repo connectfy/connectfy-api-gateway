@@ -8,10 +8,13 @@ import { AllExceptionsFilter } from './common/exception-filters/all.filter';
 import { ENVIRONMENT_VARIABLES } from './common/constants/environment-variables';
 import { REDIS_KEYS } from 'connectfy-shared';
 import { RedisStore } from 'connect-redis';
+import { DeviceIdInterceptor } from './interceptors/deviceId.interceptor';
+import { ClsService } from 'nestjs-cls';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  const cls = app.get(ClsService);
   const PORT = Number(ENVIRONMENT_VARIABLES.PORT);
   const NODE_ENV = String(ENVIRONMENT_VARIABLES.NODE_ENV);
   const CLIENT_URL = String(ENVIRONMENT_VARIABLES.CLIENT_URL);
@@ -34,9 +37,16 @@ async function bootstrap() {
   app.enableCors({
     origin: CLIENT_URL ?? 'http://localhost:5173',
     credentials: true,
-    methods: ['GET', 'POST', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'x-device-id',
+      'X-Requested-With',
+    ],
     exposedHeaders: ['Set-Cookie'],
+    optionsSuccessStatus: 204,
   });
 
   // Cookie Parser
@@ -62,6 +72,7 @@ async function bootstrap() {
 
   // Interceptor
   app.useGlobalInterceptors(new LoggingInterceptor());
+  app.useGlobalInterceptors(new DeviceIdInterceptor(cls));
 
   // Filter
   app.useGlobalFilters(new AllExceptionsFilter());
