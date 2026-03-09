@@ -9,41 +9,47 @@ export class UserController {
   @UseGuards(AuthGuard)
   @Post('me')
   async me() {
-    return await this.service.getMe();
+    return this.service.getMe();
   }
 
   @UseGuards(AuthGuard)
   @Patch('change-username')
   async changeUsername(@Body() data: any) {
-    return await this.service.changeUsername(data);
+    return this.service.changeUsername(data);
   }
 
   @UseGuards(AuthGuard)
   @Patch('change-email')
   async changeEmail(@Body() data: any) {
-    return await this.service.changeEmail(data);
+    return this.service.changeEmail(data);
   }
 
   @UseGuards(AuthGuard)
   @Patch('change-email/verify')
   async verifyEmailChange(@Body() data: any) {
-    return await this.service.verifyEmailChange(data);
+    return this.service.verifyEmailChange(data);
   }
 
   @UseGuards(AuthGuard)
   @Patch('change-password')
   async changePassword(@Body() data: any) {
-    return await this.service.changePassword(data);
+    return this.service.changePassword(data);
   }
 
   @UseGuards(AuthGuard)
   @Patch('change-phone-number')
   async changePhoneNumber(@Body() data: any) {
-    return await this.service.changePhoneNumber(data);
+    return this.service.changePhoneNumber(data);
   }
 
   @Post('check-unique')
   async checkUnique(@Body() data: any) {
-    return await this.service.checkUnique(data);
+    return this.service.checkUnique(data);
+  }
+
+  @UseGuards(AuthGuard)
+  @Patch('two-factor')
+  async updateTwoFactorAuth(@Body() data: any) {
+    return this.service.updateTwoFactorAuth(data);
   }
 }

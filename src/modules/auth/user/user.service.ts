@@ -19,9 +19,7 @@ export class UserService {
     const cacheKey = CACHE_KEYS.AUTH.USER(reqUser._id);
     const cached = await this.cacheService.get<Record<string, any>>(cacheKey);
 
-    if (cached) return cached;
-
-    return undefined;
+    return cached;
   }
 
   async changeUsername(data: any) {
@@ -32,13 +30,14 @@ export class UserService {
 
     if (res && res._id) {
       const cacheKey = CACHE_KEYS.AUTH.USER(res._id);
-      const cachedUser =
-        await this.cacheService.get<Record<string, any>>(cacheKey);
+      const cached = await this.cacheService.get<
+        Record<string, any> | undefined
+      >(cacheKey);
 
-      if (cachedUser) {
+      if (cached) {
         const updatedUser = {
-          ...cachedUser,
-          username: res.username ?? cachedUser.username,
+          ...cached,
+          username: res.username ?? cached.username,
         };
 
         await this.cacheService.updatePreserveTtl(cacheKey, updatedUser);
@@ -49,7 +48,7 @@ export class UserService {
   }
 
   async changeEmail(data: any) {
-    return await this.tcpConnectionService.auth({
+    return this.tcpConnectionService.auth({
       endpoint: 'user/change-email',
       payload: data,
     });
@@ -63,13 +62,14 @@ export class UserService {
 
     if (res && res._id) {
       const cacheKey = CACHE_KEYS.AUTH.USER(res._id);
-      const cachedUser =
-        await this.cacheService.get<Record<string, any>>(cacheKey);
+      const cached = await this.cacheService.get<
+        Record<string, any> | undefined
+      >(cacheKey);
 
-      if (cachedUser) {
+      if (cached) {
         const updatedUser = {
-          ...cachedUser,
-          email: res.email ?? cachedUser.email,
+          ...cached,
+          email: res.email ?? cached.email,
         };
 
         await this.cacheService.updatePreserveTtl(cacheKey, updatedUser);
@@ -80,7 +80,7 @@ export class UserService {
   }
 
   async changePassword(data: any) {
-    return await this.tcpConnectionService.auth({
+    return this.tcpConnectionService.auth({
       endpoint: 'user/change-password',
       payload: data,
     });
@@ -94,13 +94,14 @@ export class UserService {
 
     if (res && res._id) {
       const cacheKey = CACHE_KEYS.AUTH.USER(res._id);
-      const cachedUser =
-        await this.cacheService.get<Record<string, any>>(cacheKey);
+      const cached = await this.cacheService.get<
+        Record<string, any> | undefined
+      >(cacheKey);
 
-      if (cachedUser) {
+      if (cached) {
         const updatedUser = {
-          ...cachedUser,
-          phoneNumber: res.phoneNumber ?? cachedUser.phoneNumber,
+          ...cached,
+          phoneNumber: res.phoneNumber ?? cached.phoneNumber,
         };
 
         await this.cacheService.updatePreserveTtl(cacheKey, updatedUser);
@@ -111,9 +112,35 @@ export class UserService {
   }
 
   async checkUnique(data: any) {
-    return await this.tcpConnectionService.auth({
+    return this.tcpConnectionService.auth({
       endpoint: 'user/check-unique',
       payload: data,
     });
+  }
+
+  async updateTwoFactorAuth(data: any) {
+    const res = await this.tcpConnectionService.auth({
+      endpoint: 'user/two-factor',
+      payload: data,
+    });
+
+    if (res && res._id) {
+      const cacheKey = CACHE_KEYS.AUTH.USER(res._id);
+      const cached = await this.cacheService.get<
+        Record<string, any> | undefined
+      >(cacheKey);
+
+      if (cached) {
+        const updatedUser = {
+          ...cached,
+          isTwoFactorEnabled:
+            res.isTwoFactorEnabled ?? cached.isTwoFactorEnabled,
+        };
+
+        await this.cacheService.updatePreserveTtl(cacheKey, updatedUser);
+      }
+    }
+
+    return res;
   }
 }

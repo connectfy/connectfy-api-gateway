@@ -9,6 +9,6 @@ export class ProfileController {
 
   @Post('get')
   async getProfile() {
-    return await this.service.getProfile();
+    return this.service.getProfile();
   }
 }
