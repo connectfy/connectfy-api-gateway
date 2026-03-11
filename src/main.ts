@@ -23,7 +23,16 @@ async function bootstrap() {
   const redisClient = app.get(REDIS_KEYS.REDIS_CLIENT);
 
   const RedisSessionStore = new RedisStore({
-    client: redisClient as any,
+    client: {
+      get: (key: string) => redisClient.get(key),
+      set: (key: string, value: string, options?: { EX?: number }) => {
+        if (options?.EX) {
+          return redisClient.set(key, value, 'EX', options.EX);
+        }
+        return redisClient.set(key, value);
+      },
+      del: (key: string) => redisClient.del(key),
+    } as any,
     prefix: 'sess:',
   });
 

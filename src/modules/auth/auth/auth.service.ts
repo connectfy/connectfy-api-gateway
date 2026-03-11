@@ -54,6 +54,13 @@ export class AuthService {
     });
   }
 
+  async verifyLogin(data: any) {
+    return this.tcpConnectionService.auth({
+      endpoint: 'auth/verify-login',
+      payload: data,
+    });
+  }
+
   async googleLogin(data: any) {
     return this.tcpConnectionService.auth({
       endpoint: 'auth/google/login',

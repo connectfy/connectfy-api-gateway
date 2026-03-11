@@ -7,9 +7,16 @@ import {
   Session,
   UseGuards,
 } from '@nestjs/common';
-import { Request, Response, CookieOptions } from 'express';
+import { Request, Response, CookieOptions, response } from 'express';
 import { AuthGuard } from '@guards/auth.guard';
-import { CLS_KEYS, EXPIRE_DATES } from 'connectfy-shared';
+import {
+  BaseException,
+  CLS_KEYS,
+  ExceptionMessages,
+  EXPIRE_DATES,
+  HttpStatus,
+  LANGUAGE,
+} from 'connectfy-shared';
 import { ENVIRONMENT_VARIABLES } from '@/src/common/constants/environment-variables';
 import { extractRequestData } from '@/src/common/functions/request';
 import { AuthService } from './auth.service';
@@ -35,12 +42,20 @@ export class AuthController {
     res.cookie('refresh_token', token, cookieOptions);
   }
 
+  private saveSession(session: any): Promise<void> {
+    return new Promise((resolve, reject) => {
+      session.save((err) => (err ? reject(err) : resolve()));
+    });
+  }
+
   @Post('signup')
   async signup(@Body() data, @Session() session: Record<string, any>) {
     const res = await this.service.signup(data);
 
     session.unverifiedUser = res.unverifiedUser;
     session.verifyCode = res.verifyCode;
+
+    await this.saveSession(session);
 
     return { statusCode: 200 };
   }
@@ -50,12 +65,24 @@ export class AuthController {
     @Body() data,
     @Session() session,
     @Req() req: Request,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
   ) {
+    const lang = this.cls.get<LANGUAGE>(CLS_KEYS.LANG);
     const deviceId = this.cls.get<string>(CLS_KEYS.DEVICE_ID);
+    const unverifiedUser = session.unverifiedUser;
+    const code = session.verifyCode;
+
+    if (!unverifiedUser || !code) {
+      throw new BaseException(
+        ExceptionMessages.NOT_FOUND_MESSAGE(lang),
+        HttpStatus.NOT_FOUND,
+        { navigate: true },
+      );
+    }
+
     data.deviceId = deviceId;
-    data.unverifiedUser = session.unverifiedUser;
     data.code = session.verifyCode;
+    data.unverifiedUser = session.unverifiedUser;
     data.requestData = extractRequestData(req);
 
     const result = await this.service.verifySignup(data);
@@ -67,41 +94,110 @@ export class AuthController {
       delete session.verifyCode;
     }
 
-    return res.status(201).json({ access_token: result.access_token });
+    return { access_token: result.access_token };
   }
 
   @Post('signup/verify/resend')
   async resendSignupVerify(@Session() session: Record<string, any>) {
+    const lang = this.cls.get<LANGUAGE>(CLS_KEYS.LANG);
     const payload = session.unverifiedUser;
+
+    if (!payload) {
+      throw new BaseException(
+        ExceptionMessages.NOT_FOUND_MESSAGE(lang),
+        HttpStatus.NOT_FOUND,
+        { navigate: true },
+      );
+    }
+
     const res = await this.service.resendSignupVerify(payload);
 
     session.verifyCode = res.verifyCode;
+
+    await this.saveSession(session);
 
     return { statusCode: 200 };
   }
 
   @Post('login')
-  async login(@Body() data, @Req() req: Request, @Res() res: Response) {
+  async login(
+    @Body() data,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+    @Session() session: Record<string, any>,
+  ) {
     const deviceId = this.cls.get<string>(CLS_KEYS.DEVICE_ID);
     data.requestData = extractRequestData(req);
     data.deviceId = deviceId;
 
     const result = await this.service.login(data);
 
+    let responseData;
+
+    if (result.isTwoFactorEnabled) {
+      const { code, userId, ...rest } = result;
+      session.twoFaCode = code;
+      session.userId = userId;
+
+      await this.saveSession(session);
+
+      responseData = rest;
+    }
+
     if (result.refresh_token) {
       this.setRefreshCookie(result.refresh_token, res);
+
+      const { refresh_token, ...rest } = result;
+      responseData = rest;
+    }
+
+    return responseData;
+  }
+
+  @Post('login/verify')
+  async verifyLogin(
+    @Body() data,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+    @Session() session: Record<string, any>,
+  ) {
+    const lang = this.cls.get<LANGUAGE>(CLS_KEYS.LANG);
+    const deviceId = this.cls.get<string>(CLS_KEYS.DEVICE_ID);
+    const userId = session.userId;
+    const twoFaCode = session.twoFaCode;
+
+    if (!userId || !twoFaCode) {
+      throw new BaseException(
+        ExceptionMessages.NOT_FOUND_MESSAGE(lang),
+        HttpStatus.NOT_FOUND,
+        { navigate: true },
+      );
+    }
+
+    data.requestData = extractRequestData(req);
+    data.userId = userId;
+    data.twoFaCode = twoFaCode;
+    data.deviceId = deviceId;
+
+    const result = await this.service.verifyLogin(data);
+
+    if (result.refresh_token) {
+      this.setRefreshCookie(result.refresh_token, res);
+
+      delete session.twoFaCode;
+      delete session.userId;
     }
 
     const { refresh_token, ...rest } = result;
 
-    return res.status(201).json(rest);
+    return rest;
   }
 
   @Post('google/login')
   async googleAuthLogin(
     @Body() data,
     @Req() request: Request,
-    @Res() response: Response,
+    @Res({ passthrough: true }) response: Response,
   ) {
     const deviceId = this.cls.get<string>(CLS_KEYS.DEVICE_ID);
     data.requestData = extractRequestData(request);
@@ -115,14 +211,14 @@ export class AuthController {
 
     const { refresh_token, ...rest } = res;
 
-    return response.status(201).json(rest);
+    return rest;
   }
 
   @Post('google/signup')
   async googleAuthSignup(
     @Body() data,
     @Req() request: Request,
-    @Res() response: Response,
+    @Res({ passthrough: true }) response: Response,
   ) {
     const deviceId = this.cls.get<string>(CLS_KEYS.DEVICE_ID);
     data.requestData = extractRequestData(request);
@@ -134,11 +230,14 @@ export class AuthController {
       this.setRefreshCookie(res.refresh_token, response);
     }
 
-    return response.status(201).json({ access_token: res.access_token });
+    return { access_token: res.access_token };
   }
 
   @Post('refresh')
-  async refresh(@Req() req: Request, @Res() res: Response) {
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const deviceId = this.cls.get<string>(CLS_KEYS.DEVICE_ID);
 
     const payload = {
@@ -151,38 +250,33 @@ export class AuthController {
 
     this.setRefreshCookie(result.refresh_token, res);
 
-    return res.status(200).json({ access_token: result.access_token });
+    return { access_token: result.access_token };
   }
 
   @UseGuards(AuthGuard)
   @Post('logout')
-  async logout(@Req() req: Request, @Res() res: Response) {
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const deviceId = this.cls.get<string>(CLS_KEYS.DEVICE_ID);
     const authHeader = req.headers.authorization;
 
-    let accessToken;
-    if (!authHeader) {
-      accessToken = '';
-    } else {
-      const [type, token] = authHeader.split(' ');
-      accessToken = type === 'Bearer' ? token : '';
-    }
+    const [type, token] = (authHeader ?? '').split(' ');
+    const accessToken = type === 'Bearer' ? token : '';
 
     const result = await this.service.logout({ deviceId }, accessToken);
 
     res.clearCookie('refresh_token');
 
-    return res.status(200).json(result);
+    return result;
   }
 
   @UseGuards(AuthGuard)
   @Post('delete-account')
-  async deleteAccount(@Body() data, @Res() res: Response) {
+  async deleteAccount(@Body() data, @Res({ passthrough: true }) res: Response) {
     const result = await this.service.deleteAccount(data);
 
     res.clearCookie('refresh_token');
 
-    return res.status(200).json(result);
+    return result;
   }
 
   @Post('forgot-password')
@@ -196,14 +290,23 @@ export class AuthController {
   }
 
   @Post('restore-account')
-  async restoreAccount(@Body() data, @Res() res: Response) {
+  async restoreAccount(
+    @Body() data,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const deviceId = this.cls.get<string>(CLS_KEYS.DEVICE_ID);
+    data.requestData = extractRequestData(req);
+    data.deviceId = deviceId;
     const result = await this.service.restoreAccount(data);
 
     if (result.refresh_token) {
       this.setRefreshCookie(result.refresh_token, res);
     }
 
-    return res.status(201).json({ access_token: result.access_token });
+    const { refresh_token, ...rest } = result;
+
+    return rest;
   }
 
   @UseGuards(AuthGuard)

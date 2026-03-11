@@ -23,6 +23,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
     let message = ExceptionMessages.INTERNAL_SERVER_ERROR_MESSAGE(language);
     let additional = null;
 
+    if (response.headersSent) {
+      return;
+    }
+
     // Log for debugging
     console.log('\n');
     if (exception.stack) this.logger.error('Exception stack', exception.stack);
