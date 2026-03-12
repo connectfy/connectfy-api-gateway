@@ -19,7 +19,9 @@ export class UserService {
     const cacheKey = CACHE_KEYS.AUTH.USER(reqUser._id);
     const cached = await this.cacheService.get<Record<string, any>>(cacheKey);
 
-    return cached;
+    const { status, role, ...rest } = cached || {};
+
+    return rest;
   }
 
   async changeUsername(data: any) {
@@ -105,11 +107,8 @@ export class UserService {
 
         if (data.action === PHONE_NUMBER_ACTION.REMOVE) {
           updatedUser.phoneNumber = null;
-          updatedUser.hasPhoneNumber = false;
         } else {
           updatedUser.phoneNumber = res.phoneNumber ?? cached.phoneNumber;
-          updatedUser.hasPhoneNumber =
-            res.hasPhoneNumber ?? cached.hasPhoneNumber;
         }
 
         await this.cacheService.updatePreserveTtl(cacheKey, updatedUser);
