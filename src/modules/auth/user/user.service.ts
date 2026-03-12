@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CACHE_KEYS, CLS_KEYS } from 'connectfy-shared';
+import { CACHE_KEYS, CLS_KEYS, PHONE_NUMBER_ACTION } from 'connectfy-shared';
 import { CacheService } from '@/src/app-settings/cache/cache.service';
 import { TcpConnectionService } from '@/src/app-settings/tcp-connections/tcp-connection.service';
 import { ClsService } from 'nestjs-cls';
@@ -101,8 +101,16 @@ export class UserService {
       if (cached) {
         const updatedUser = {
           ...cached,
-          phoneNumber: res.phoneNumber ?? cached.phoneNumber,
         };
+
+        if (data.action === PHONE_NUMBER_ACTION.REMOVE) {
+          updatedUser.phoneNumber = null;
+          updatedUser.hasPhoneNumber = false;
+        } else {
+          updatedUser.phoneNumber = res.phoneNumber ?? cached.phoneNumber;
+          updatedUser.hasPhoneNumber =
+            res.hasPhoneNumber ?? cached.hasPhoneNumber;
+        }
 
         await this.cacheService.updatePreserveTtl(cacheKey, updatedUser);
       }
