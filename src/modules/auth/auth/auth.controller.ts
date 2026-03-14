@@ -54,6 +54,7 @@ export class AuthController {
 
     session.unverifiedUser = res.unverifiedUser;
     session.verifyCode = res.verifyCode;
+    session.cookie.maxAge = 1000 * 60 * 15;
 
     await this.saveSession(session);
 
@@ -113,6 +114,7 @@ export class AuthController {
     const res = await this.service.resendSignupVerify(payload);
 
     session.verifyCode = res.verifyCode;
+    session.cookie.maxAge = 1000 * 60 * 15;
 
     await this.saveSession(session);
 
@@ -138,6 +140,7 @@ export class AuthController {
       const { code, userId, ...rest } = result;
       session.twoFaCode = code;
       session.userId = userId;
+      session.cookie.maxAge = 1000 * 60 * 15;
 
       await this.saveSession(session);
 
@@ -255,7 +258,11 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Post('logout')
-  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+  async logout(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+    @Session() session: Record<string, any>,
+  ) {
     const deviceId = this.cls.get<string>(CLS_KEYS.DEVICE_ID);
     const authHeader = req.headers.authorization;
 
@@ -265,28 +272,9 @@ export class AuthController {
     const result = await this.service.logout({ deviceId }, accessToken);
 
     res.clearCookie('refresh_token');
+    session.destroy();
 
     return result;
-  }
-
-  @UseGuards(AuthGuard)
-  @Post('delete-account')
-  async deleteAccount(@Body() data, @Res({ passthrough: true }) res: Response) {
-    const result = await this.service.deleteAccount(data);
-
-    res.clearCookie('refresh_token');
-
-    return result;
-  }
-
-  @Post('forgot-password')
-  async forgotPassword(@Body() data) {
-    return this.service.forgotPassword(data);
-  }
-
-  @Post('reset-password')
-  async resetPassword(@Body() data) {
-    return this.service.resetPassword(data);
   }
 
   @Post('restore-account')
@@ -309,10 +297,14 @@ export class AuthController {
     return rest;
   }
 
-  @UseGuards(AuthGuard)
-  @Post('deactivate-account')
-  async deactivateAccount(@Body() data) {
-    return this.service.deactivateAccount(data);
+  @Post('forgot-password')
+  async forgotPassword(@Body() data) {
+    return this.service.forgotPassword(data);
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() data) {
+    return this.service.resetPassword(data);
   }
 
   @UseGuards(AuthGuard)

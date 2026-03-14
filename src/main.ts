@@ -25,11 +25,20 @@ async function bootstrap() {
   const RedisSessionStore = new RedisStore({
     client: {
       get: (key: string) => redisClient.get(key),
-      set: (key: string, value: string, options?: { EX?: number }) => {
-        if (options?.EX) {
-          return redisClient.set(key, value, 'EX', options.EX);
+      set: (
+        key: string,
+        value: string,
+        options?: { expiration: { type: 'EX' | 'PX'; value: number } },
+      ) => {
+        const expType = options?.expiration?.type;
+        const expValue = options?.expiration?.value;
+        if (expType === 'PX') {
+          return redisClient.set(key, value, 'PX', expValue);
         }
-        return redisClient.set(key, value);
+        if (expType === 'EX') {
+          return redisClient.set(key, value, 'EX', expValue);
+        }
+        return redisClient.set(key, value, 'EX', 60 * 15);
       },
       del: (key: string) => redisClient.del(key),
     } as any,
@@ -73,7 +82,7 @@ async function bootstrap() {
         httpOnly: true,
         secure: NODE_ENV === 'production',
         sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
-        maxAge: 1000 * 60 * 60 * 24 * 30,
+        maxAge: 1000 * 60 * 60,
         domain: NODE_ENV === 'production' ? undefined : undefined,
       },
     }),

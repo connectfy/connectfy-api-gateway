@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
-import { REDIS_KEYS } from 'connectfy-shared';
+import { EXPIRE_DATES, REDIS_KEYS } from 'connectfy-shared';
 
 type SetOpts = { key: string; data: any; ttl?: number };
 
@@ -34,7 +34,12 @@ export class CacheService {
     if (_ttl && _ttl > 0) {
       await this.redis.set(key, payload, 'EX', _ttl);
     } else {
-      await this.redis.set(key, payload);
+      await this.redis.set(
+        key,
+        payload,
+        'EX',
+        EXPIRE_DATES.TTL.ONE_MINUTE * 15,
+      );
     }
   }
 

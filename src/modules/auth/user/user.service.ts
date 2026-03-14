@@ -150,4 +150,40 @@ export class UserService {
 
     return res;
   }
+
+  async deleteAccount(data: any) {
+    const user = this.cls.get(CLS_KEYS.USER);
+    const userId = user?._id;
+
+    const res = await this.tcpConnectionService.auth({
+      endpoint: 'user/delete-account',
+      payload: { ...data, userId },
+    });
+
+    if (res?.statusCode === 200 && userId) {
+      const cacheKey = CACHE_KEYS.AUTH.USER(userId);
+      await this.cacheService.remove(cacheKey);
+    }
+
+    return res;
+  }
+
+  async deactivateAccount(data: any) {
+    const res = await this.tcpConnectionService.auth({
+      endpoint: 'user/deactivate-account',
+      payload: data,
+    });
+
+    if (res?.statusCode === 200) {
+      const user = this.cls.get(CLS_KEYS.USER);
+      const userId = user?._id;
+
+      if (userId) {
+        const cacheKey = CACHE_KEYS.AUTH.USER(userId);
+        await this.cacheService.remove(cacheKey);
+      }
+    }
+
+    return res;
+  }
 }

@@ -1,6 +1,15 @@
-import { Body, Controller, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Patch,
+  Post,
+  Res,
+  Session,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@guards/auth.guard';
 import { UserService } from './user.service';
+import { Response } from 'express';
 
 @Controller('user')
 export class UserController {
@@ -51,5 +60,33 @@ export class UserController {
   @Patch('two-factor')
   async updateTwoFactorAuth(@Body() data: any) {
     return this.service.updateTwoFactorAuth(data);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('delete-account')
+  async deleteAccount(
+    @Body() data,
+    @Res({ passthrough: true }) res: Response,
+    @Session() session: Record<string, any>,
+  ) {
+    const result = await this.service.deleteAccount(data);
+
+    res.clearCookie('refresh_token');
+    session.destroy();
+
+    return result;
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('deactivate-account')
+  async deactivateAccount(
+    @Body() data,
+    @Session() session: Record<string, any>,
+  ) {
+    const result = await this.service.deactivateAccount(data);
+
+    session.destroy();
+
+    return result;
   }
 }
